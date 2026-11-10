@@ -11,23 +11,26 @@
     FontFamily="{materialDesign:MaterialDesignFont}"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}">
 
-    <DockPanel>
+    <!-- Le DialogHost entoure tout le contenu : c'est lui qui affiche les boîtes de dialogue -->
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <DockPanel>
 
-        <!-- Barre d'application : le titre -->
-        <materialDesign:ColorZone
-            Padding="16"
-            DockPanel.Dock="Top"
-            Mode="PrimaryMid">
-            <TextBlock FontSize="20" Text="Mes notes" />
-        </materialDesign:ColorZone>
+            <!-- Barre d'application : le titre -->
+            <materialDesign:ColorZone
+                Padding="16"
+                DockPanel.Dock="Top"
+                Mode="PrimaryMid">
+                <TextBlock FontSize="20" Text="Mes notes" />
+            </materialDesign:ColorZone>
 
-        <Grid>
-            <!-- L'écran courant : WPF choisit la vue grâce aux DataTemplate de App.xaml -->
-            <ContentControl Content="{Binding CurrentViewModel}" />
+            <Grid>
+                <!-- L'écran courant : WPF choisit la vue grâce aux DataTemplate de App.xaml -->
+                <ContentControl Content="{Binding CurrentViewModel}" />
 
-            <!-- Zone de notification ; sa file de messages est donnée par App.xaml.cs -->
-            <materialDesign:Snackbar x:Name="MainSnackbar" VerticalAlignment="Bottom" />
-        </Grid>
+                <!-- Zone de notification ; sa file de messages est donnée par App.xaml.cs -->
+                <materialDesign:Snackbar x:Name="MainSnackbar" VerticalAlignment="Bottom" />
+            </Grid>
 
-    </DockPanel>
+        </DockPanel>
+    </materialDesign:DialogHost>
 </Window>

@@ -1,0 +1,1185 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteApp — Sprint 1, créer le projet et naviguer entre deux écrans</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+:root{
+  --bg:#f5f3fa;
+  --surface:#ffffff;
+  --surface-2:#efebf8;
+  --ink:#211b34;
+  --ink-soft:#4a4360;
+  --muted:#726b8c;
+  --accent:#4c2d84;
+  --accent-strong:#341f5c;
+  --accent-tint:#eae3f8;
+  --lime:#5c8a29;
+  --lime-tint:#e9f3da;
+  --line:#e1dbf0;
+  --code-bg:#1e1b2b;
+  --code-header:#171420;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#9b7ee8;
+  --danger:#a6192e;
+  --danger-tint:#fbe7ea;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(33,27,52,.06), 0 8px 24px -12px rgba(33,27,52,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121f;
+    --surface:#1c1830;
+    --surface-2:#241f3d;
+    --ink:#efe9fb;
+    --ink-soft:#cabfe6;
+    --muted:#9186ad;
+    --accent:#b394f0;
+    --accent-strong:#d6c2ff;
+    --accent-tint:#2c2350;
+    --lime:#a5d66b;
+    --lime-tint:#26301c;
+    --line:#332a52;
+    --code-bg:#100e1a;
+    --code-header:#0b0a13;
+    --code-fg:#e8e3f5;
+    --code-muted:#8b83a8;
+    --code-accent:#b394f0;
+    --danger:#ff8fa3;
+    --danger-tint:#3a1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121f;
+  --surface:#1c1830;
+  --surface-2:#241f3d;
+  --ink:#efe9fb;
+  --ink-soft:#cabfe6;
+  --muted:#9186ad;
+  --accent:#b394f0;
+  --accent-strong:#d6c2ff;
+  --accent-tint:#2c2350;
+  --lime:#a5d66b;
+  --lime-tint:#26301c;
+  --line:#332a52;
+  --code-bg:#100e1a;
+  --code-header:#0b0a13;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#b394f0;
+  --danger:#ff8fa3;
+  --danger-tint:#3a1b23;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.62;
+}
+h1,h2,h3,h4{
+  font-family:"Barlow Semi Condensed","Segoe UI",sans-serif;
+  font-weight:700;color:var(--ink);text-wrap:balance;margin:0;
+}
+code, pre, .mono{font-family:"JetBrains Mono",Consolas,monospace;}
+::selection{background:var(--accent-tint);}
+a{color:var(--accent);}
+p{margin:0 0 14px;}
+p:last-child{margin-bottom:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:840px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14.5px;
+  letter-spacing:.02em;white-space:nowrap;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+.pillnav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.pillnav::-webkit-scrollbar{display:none;}
+.pillnav a{
+  flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:6px 9px;border-radius:999px;border:1px solid transparent;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.pillnav a:hover{background:var(--surface-2);color:var(--ink);}
+
+.container{max-width:840px;margin:0 auto;padding:0 24px;}
+.prose{max-width:680px;}
+
+/* ---------- Header ---------- */
+.pageintro{padding:44px 0 8px;}
+.eyebrow{
+  font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px;
+}
+.pageintro h1{font-size:clamp(27px,4vw,38px);line-height:1.08;max-width:22ch;margin-bottom:14px;}
+.pageintro p.lede{max-width:62ch;color:var(--ink-soft);font-size:16.5px;}
+
+.metastrip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;margin:28px 0 40px;
+}
+.metacell{background:var(--surface);padding:13px 16px;}
+.metacell .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.metacell .val{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);}
+@media (max-width:640px){.metastrip{grid-template-columns:1fr 1fr;}}
+
+/* ---------- Part sections ---------- */
+.part{scroll-margin-top:64px;padding:6px 0 46px;border-bottom:1px solid var(--line);}
+.part:last-of-type{border-bottom:none;}
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.part-num{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;
+  color:var(--surface);background:var(--accent);
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.part-head h2{font-size:23px;}
+.part-sub{margin:0 0 18px 44px;color:var(--muted);font-size:14.5px;}
+.part > .prose > h3{font-size:16.5px;margin:28px 0 10px;color:var(--ink);}
+.part > .prose > h3:first-child{margin-top:0;}
+
+/* ---------- Recurring blocks ---------- */
+.tagline{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 0;margin-bottom:8px;
+}
+.concept{
+  background:var(--accent-tint);border-radius:0 8px 8px 0;border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.concept .tagline{color:var(--accent-strong);}
+.concept b{color:var(--ink);}
+
+.explain{
+  background:var(--surface-2);border-radius:8px;padding:14px 18px;margin:0 0 16px;
+  font-size:14.5px;color:var(--ink-soft);
+}
+.explain .tagline{color:var(--muted);}
+.explain code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.92em;color:var(--ink);}
+.explain b{color:var(--ink);}
+.explain ul,.explain ol{margin:8px 0 0;padding-left:20px;}
+.explain li{margin-bottom:6px;}
+.explain li:last-child{margin-bottom:0;}
+
+.watch{
+  border-left:3px solid var(--danger);background:var(--danger-tint);border-radius:0 8px 8px 0;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-soft);
+}
+.watch .tagline{color:var(--danger);}
+.watch b{color:var(--ink);}
+.watch code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+
+.checkpoint{
+  border:1px dashed var(--lime);border-radius:8px;padding:14px 18px;margin:20px 0 0;
+  background:var(--lime-tint);font-size:14.5px;color:var(--ink-soft);
+}
+.checkpoint .tagline{color:var(--lime);}
+.checkpoint b{color:var(--ink);}
+.checkpoint code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+.checkpoint ol{margin:8px 0 0;padding-left:20px;}
+.checkpoint li{margin-bottom:5px;}
+
+p code, li code, .prose > p code{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-size:.9em;color:var(--accent-strong);font-weight:500;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block{border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:14px 0 16px;box-shadow:var(--shadow);}
+.code-file{
+  background:var(--code-header);color:var(--code-muted);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;padding:8px 14px;display:flex;align-items:center;gap:8px;
+}
+.code-file i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.code-file i.cs{background:var(--code-accent);}
+.code-file i.xaml{background:#e8a04e;}
+.code-file i.cfg{background:var(--lime);}
+.code-file i.new{background:var(--lime);}
+.code-wrap{background:var(--code-bg);overflow-x:auto;}
+pre.code{margin:0;padding:15px 16px;font-family:"JetBrains Mono",monospace;font-size:12.6px;line-height:1.62;color:var(--code-fg);white-space:pre;tab-size:4;}
+
+/* ---------- Diagram ---------- */
+.diagram{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:14px;margin:14px 0 16px;box-shadow:var(--shadow);}
+.diagram svg{width:100%;height:auto;display:block;}
+
+.recap{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;}
+.recap th,.recap td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+.recap th{background:var(--surface-2);font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;}
+.recap-wrap{overflow-x:auto;border-radius:8px;}
+.recap td:first-child{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+.recap td.step{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;color:var(--muted);white-space:nowrap;}
+
+footer{padding:24px 0 60px;}
+footer p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ---------- Depuis PHP (pont avec ce que les étudiants connaissent) ---------- */
+.bridge{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lime);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.bridge .tagline{color:var(--lime);}
+.bridge b{color:var(--ink);}
+.bridge p code,.bridge li code{color:var(--ink);}
+.bridge ul{margin:8px 0 0;padding-left:20px;}
+.bridge li{margin-bottom:5px;}
+.bridge .code-block{margin:10px 0 0;box-shadow:none;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare .code-block{margin:0;}
+@media (max-width:700px){.compare{grid-template-columns:1fr;}}
+.code-file i.php{background:#8892bf;}
+
+/* ---------- Navigation entre sprints ---------- */
+.sprintnav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font-size:14px;}
+.sprintnav a{text-decoration:none;font-weight:600;}
+.compare pre.code{font-size:11.2px;padding:12px 12px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand"><span class="dot"></span>NoteApp · Guide TP code-behind</span>
+    <nav class="pillnav" aria-label="Navigation des parties">
+      <a href="#depart">Départ</a>
+      <a href="#csharp">C# &amp; WPF</a>
+      <a href="#etape1">Étape 1</a>
+      <a href="#etape2">Étape 2</a>
+      <a href="#etape3">Étape 3</a>
+      <a href="#bilan">Bilan</a>
+      <a href="#git">Git</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <header class="pageintro">
+    <p class="eyebrow">NoteApp · Version code-behind · Sprint 1 sur 3</p>
+    <h1>Créer le projet et naviguer entre deux écrans</h1>
+    <p class="lede">
+      Tu connais la programmation objet en PHP&nbsp;; tu vas maintenant la retrouver en C#, dans une application de
+      bureau Windows. Dans ce premier sprint, tu crées le projet <code>WpfNotes.CodeBehind</code>, tu l'habilles avec
+      Material Design, puis tu construis la fenêtre principale et deux écrans entre lesquels on navigue. Aucune donnée
+      pour l'instant&nbsp;: les notes arrivent au sprint 2.
+    </p>
+    <div class="metastrip">
+      <div class="metacell"><div class="lbl">Point de départ</div><div class="val">dossier vide</div></div>
+      <div class="metacell"><div class="lbl">Point d'arrivée</div><div class="val">tag sprint-01</div></div>
+      <div class="metacell"><div class="lbl">Écrans</div><div class="val">1 fenêtre, 2 vues</div></div>
+      <div class="metacell"><div class="lbl">Package installé</div><div class="val">MaterialDesignThemes</div></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <section class="part" id="depart">
+    <div class="part-head"><div class="part-num">0</div><h2>Où en est-on&nbsp;? Que va-t-on faire&nbsp;?</h2></div>
+    <div class="prose">
+      <p>
+        Rien n'existe encore. En trois sprints, tu vas construire <b>NoteApp</b>, un petit carnet de notes&nbsp;:
+        les notes s'affichent sous forme de cartes, on les crée, on les modifie, on les enregistre, on les supprime
+        après confirmation, et un court message confirme chaque action.
+      </p>
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Sprint</th><th>Ce que l'application sait faire à la fin</th></tr></thead>
+          <tbody>
+            <tr><td>sprint-01</td><td>Une fenêtre, deux écrans vides, et la navigation de l'un à l'autre.</td></tr>
+            <tr><td>sprint-02</td><td>Créer une note et l'enregistrer dans un fichier, avec un message de confirmation.</td></tr>
+            <tr><td>sprint-03</td><td>Afficher toutes les notes, en ouvrir une, la supprimer après confirmation.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Toute la logique sera écrite dans le <em>code-behind</em> des écrans, la façon la plus directe de programmer
+        en WPF. À la fin du sprint 3, on se demandera comment tester ce code&nbsp;: cette question mènera à la
+        version MVVM de l'application.
+      </p>
+      <p>
+        Les encadrés <b>Depuis PHP</b> font le lien avec ce que tu connais déjà. Ils montrent, pour chaque notion
+        nouvelle, comment tu l'écrirais en PHP.
+      </p>
+      <p>Pour ce sprint&nbsp;: trois étapes, chacune vérifiable avant de passer à la suivante.</p>
+      <div class="explain">
+        <ul>
+          <li><b>Étape 1</b> — créer le projet WPF et y installer Material Design.</li>
+          <li><b>Étape 2</b> — construire la fenêtre principale&nbsp;: une barre de titre et une zone d'écran.</li>
+          <li><b>Étape 3</b> — créer les deux écrans et passer de l'un à l'autre.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="csharp">
+    <div class="part-head"><div class="part-num">1</div><h2>C# et WPF, vus depuis PHP</h2></div>
+    <div class="prose">
+      <h3>C#, un langage compilé et typé</h3>
+      <p>
+        En PHP, le serveur lit ton code et l'exécute ligne par ligne. En C#, un <b>compilateur</b> lit d'abord
+        tout le projet, vérifie qu'il est cohérent, puis produit un programme exécutable. Une faute de frappe dans
+        un nom de méthode est donc signalée <em>avant</em> de lancer l'application, pas au moment où la ligne
+        s'exécute.
+      </p>
+      <p>
+        Pour pouvoir tout vérifier, le compilateur exige de connaître le <b>type</b> de chaque variable, de chaque
+        paramètre et de chaque valeur de retour. C'est la principale différence que tu vas ressentir.
+      </p>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — la même classe dans les deux langages</div>
+        <p>Une petite classe d'exemple (elle ne fait pas partie du projet), écrite en PHP puis en C#&nbsp;:</p>
+        <div class="compare">
+<div class="code-block">
+  <div class="code-file"><i class="php"></i>Exemple en PHP</div>
+  <div class="code-wrap"><pre class="code">namespace App\Models;
+
+class Greeter
+{
+    private string $name;
+
+    public function __construct(string $name)
+    {
+        $this-&gt;name = $name;
+    }
+
+    public function greet(): string
+    {
+        return "Bonjour " . $this-&gt;name;
+    }
+}
+
+$greeter = new Greeter("Alice");
+echo $greeter-&gt;greet();</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Le même exemple en C#</div>
+  <div class="code-wrap"><pre class="code">namespace WpfNotes.Examples;
+
+public class Greeter
+{
+    private string _name;
+
+    public Greeter(string name)
+    {
+        _name = name;
+    }
+
+    public string Greet()
+    {
+        return "Bonjour " + _name;
+    }
+}
+
+Greeter greeter = new Greeter("Alice");
+Console.WriteLine(greeter.Greet());</pre></div>
+</div>
+        </div>
+        <ul>
+          <li>Pas de <code>$</code> devant les variables. Le <b>type</b> s'écrit <em>avant</em> le nom&nbsp;:
+            <code>string name</code>, <code>Greeter greeter</code>.</li>
+          <li>Le constructeur porte le <b>nom de la classe</b> (<code>Greeter(...)</code>) au lieu de
+            <code>__construct</code>.</li>
+          <li>Le type de retour se place devant le nom de la méthode&nbsp;: <code>public string Greet()</code>
+            équivaut à <code>public function greet(): string</code>.</li>
+          <li>On accède aux membres avec un point (<code>greeter.Greet()</code>) au lieu de la flèche
+            <code>-&gt;</code>, et on concatène avec <code>+</code> au lieu de <code>.</code>.</li>
+          <li><code>$this-&gt;name</code> devient simplement <code>_name</code>&nbsp;: en C#, <code>this.</code> est
+            facultatif. Par convention, les champs privés commencent par <code>_</code> pour les reconnaître.</li>
+          <li>Les méthodes s'écrivent en <code>PascalCase</code> (<code>Greet</code>), les variables locales en
+            <code>camelCase</code> (<code>greeter</code>).</li>
+          <li>Les deux dernières lignes montrent l'utilisation de la classe. En C#, elles ne peuvent pas rester
+            seules dans le fichier&nbsp;: elles se trouveraient dans une méthode d'une autre classe.</li>
+        </ul>
+      </div>
+
+      <h3>WPF et XAML</h3>
+      <p>
+        WPF (<em>Windows Presentation Foundation</em>) est le framework .NET pour construire des applications de
+        bureau Windows. L'interface ne se décrit pas en C# mais en <b>XAML</b>, un langage à balises qui ressemble à
+        du HTML.
+      </p>
+      <div class="concept">
+        <div class="tagline">Notion — XAML n'est pas du HTML</div>
+        Une balise XAML crée un <b>objet .NET</b>&nbsp;: <code>&lt;Button&gt;</code> crée un objet de la classe
+        <code>Button</code>, <code>&lt;TextBox&gt;</code> un objet de la classe <code>TextBox</code>. Chaque attribut
+        (<code>Width="900"</code>) donne une valeur à une propriété de cet objet. Écrire du XAML revient à construire
+        un arbre d'objets, décrit de façon déclarative.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — une vue Blade et une vue XAML</div>
+        Une vue Blade produit du <b>texte HTML</b>, envoyé au navigateur qui le dessine. Une vue XAML produit des
+        <b>objets</b> en mémoire, que ton code C# peut lire et modifier directement&nbsp;: changer le texte d'un
+        champ, désactiver un bouton, remplacer un écran par un autre. Pas de requête, pas de rechargement de page.
+      </div>
+      <p>
+        Chaque fichier XAML va de pair avec un fichier <code>.xaml.cs</code> du même nom&nbsp;: le
+        <b>code-behind</b>, où tu écris le C# qui réagit à l'interface. Les deux fichiers forment une seule
+        classe&nbsp;; on verra comment à l'étape 2.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape1">
+    <div class="part-head"><div class="part-num">2</div><h2>Étape 1 — Créer le projet et installer Material Design</h2></div>
+    <p class="part-sub">Solution et projet, package NuGet, thème global, anatomie du .csproj.</p>
+    <div class="prose">
+
+      <h3>1.1 — Nouveau projet WPF</h3>
+      <div class="explain">
+        <div class="tagline">Étapes dans Visual Studio</div>
+        <ol>
+          <li>Fichier → Nouveau → Projet…</li>
+          <li>Choisis le modèle <b>Application WPF</b> (marqué <code>C#</code>, <code>Windows</code>,
+            <code>Bureau</code>), et non « Application WPF (.NET Framework) », l'ancienne technologie.</li>
+          <li>Nom du projet&nbsp;: <code>WpfNotes.CodeBehind</code>. Nom de la solution&nbsp;: <code>NoteApp</code>.
+            Emplacement&nbsp;: le dossier où tu ranges tes projets.</li>
+          <li>Laisse décochée la case « Placer la solution et le projet dans le même répertoire ».</li>
+          <li>Framework&nbsp;: <b>.NET 10.0</b>. Valide.</li>
+        </ol>
+      </div>
+      <p>
+        Visual Studio crée un dossier <code>NoteApp</code>, qui contient la solution et un sous-dossier pour le
+        projet. Ce dossier <code>NoteApp</code> sera la racine de ton dépôt Git, initialisé en fin de sprint. Il
+        contient ces fichiers&nbsp;:
+      </p>
+      <div class="explain">
+        <ul>
+          <li><code>NoteApp.slnx</code> — la <b>solution</b>, à la racine du dossier (<code>NoteApp.sln</code> avec
+            une version plus ancienne de Visual Studio&nbsp;: le rôle est le même).</li>
+          <li><code>WpfNotes.CodeBehind/WpfNotes.CodeBehind.csproj</code> — le <b>projet</b> (on le lit en 1.4).</li>
+          <li><code>App.xaml</code> et <code>App.xaml.cs</code> — l'application elle-même&nbsp;: ses ressources et
+            la fenêtre qui s'ouvre au démarrage.</li>
+          <li><code>MainWindow.xaml</code> et <code>MainWindow.xaml.cs</code> — la fenêtre principale, vide pour
+            l'instant.</li>
+          <li><code>AssemblyInfo.cs</code> — des réglages techniques générés. Tu n'y toucheras pas.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — solution et projet</div>
+        Un <b>projet</b> produit un seul programme ou une seule bibliothèque. Une <b>solution</b> regroupe un ou
+        plusieurs projets qu'on ouvre ensemble dans Visual Studio. Ici, la solution ne contient qu'un projet. La
+        version MVVM de NoteApp en comptera trois&nbsp;: l'application, une bibliothèque de logique et un projet de
+        tests.
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — pourquoi « .NET » et pas « .NET Framework »&nbsp;?</div>
+        <b>.NET Framework</b> est l'ancienne plateforme, réservée à Windows et figée à la version 4.8.
+        <b>.NET</b> (sans « Framework ») est la plateforme actuelle, multiplateforme et mise à jour chaque année.
+        Ce cours utilise .NET 10.
+      </div>
+
+      <h3>1.2 — Installer MaterialDesignInXAML</h3>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — NuGet, c'est Composer</div>
+        <b>NuGet</b> est le gestionnaire de paquets de .NET, comme Composer pour PHP&nbsp;: tu demandes un paquet,
+        il le télécharge et l'ajoute au projet. Le site <code>nuget.org</code> joue le rôle de Packagist.
+        <b>MaterialDesignInXAML</b> apporte des styles et des contrôles prêts à l'emploi qui suivent les règles
+        de design « Material Design » de Google.
+      </div>
+      <div class="explain">
+        <div class="tagline">Étapes dans Visual Studio</div>
+        <ol>
+          <li>Clic droit sur le projet <code>WpfNotes.CodeBehind</code> → Gérer les packages NuGet…</li>
+          <li>Onglet Parcourir, recherche <code>MaterialDesignThemes</code>, choisis la version
+            <code>5.3.2</code>, installe.</li>
+        </ol>
+      </div>
+      <p>Le <code>.csproj</code> reçoit alors ces lignes&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>WpfNotes.CodeBehind.csproj — ajouté par NuGet</div>
+  <div class="code-wrap"><pre class="code">&lt;ItemGroup&gt;
+  &lt;PackageReference Include="MaterialDesignThemes" Version="5.3.2" /&gt;
+&lt;/ItemGroup&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>Version="5.3.2"</code> fixe une version précise, comme un numéro exact dans
+        <code>composer.json</code>. Le projet compile alors de la même façon sur toutes les machines, même si une
+        nouvelle version du package sort entre-temps.
+      </div>
+
+      <h3>1.3 — Configurer le thème dans <code>App.xaml</code></h3>
+      <p>Remplace le contenu généré par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>App.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Application
+    x:Class="WpfNotes.CodeBehind.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    StartupUri="MainWindow.xaml"&gt;
+    &lt;Application.Resources&gt;
+        &lt;ResourceDictionary&gt;
+            &lt;ResourceDictionary.MergedDictionaries&gt;
+                &lt;materialDesign:BundledTheme
+                    BaseTheme="Light"
+                    PrimaryColor="DeepPurple"
+                    SecondaryColor="Lime" /&gt;
+                &lt;ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" /&gt;
+            &lt;/ResourceDictionary.MergedDictionaries&gt;
+        &lt;/ResourceDictionary&gt;
+    &lt;/Application.Resources&gt;
+&lt;/Application&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li>Les lignes <code>xmlns…</code> déclarent le <em>vocabulaire</em> que le fichier peut utiliser.
+            <code>xmlns:materialDesign</code> donne accès aux balises de MaterialDesign, préfixées par
+            <code>materialDesign:</code>. On y revient à l'étape 2.</li>
+          <li><code>x:Class="WpfNotes.CodeBehind.App"</code> relie ce XAML à la classe C# <code>App</code>, écrite
+            dans <code>App.xaml.cs</code>.</li>
+          <li><code>Application.Resources</code> — un panier de ressources (styles, couleurs…) accessibles depuis
+            <em>toutes</em> les fenêtres de l'application.</li>
+          <li><code>MergedDictionaries</code> fusionne plusieurs dictionnaires de ressources en un seul. C'est ainsi
+            qu'on importe les ressources fournies par un package.</li>
+          <li><code>BundledTheme</code> génère toute la palette de couleurs à partir d'une couleur principale
+            (<code>DeepPurple</code>) et d'une couleur secondaire (<code>Lime</code>).</li>
+          <li>Le second <code>ResourceDictionary</code> (le chemin <code>pack://…</code>) apporte les styles
+            <b>Material Design 3</b> de tous les contrôles&nbsp;: boutons, champs de saisie, cartes…</li>
+          <li><code>StartupUri="MainWindow.xaml"</code> — la fenêtre qui s'ouvre au lancement.</li>
+        </ul>
+      </div>
+      <p>Le fichier <code>App.xaml.cs</code> généré reste tel quel&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>App.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+
+namespace WpfNotes.CodeBehind;
+
+public partial class App : Application
+{
+}</pre></div>
+</div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — selon ta version de Visual Studio</div>
+        Le fichier généré contient sans doute quelques <code>using</code> en plus, et écrit
+        <code>namespace WpfNotes.CodeBehind { … }</code> avec des accolades autour de la classe. Les deux formes sont
+        équivalentes&nbsp;: <code>namespace …;</code>, avec un point-virgule, s'applique simplement à tout le
+        fichier. L'important est la ligne <code>public partial class App : Application</code>, expliquée à
+        l'étape 2.
+      </div>
+
+      <h3>1.4 — Le fichier <code>.csproj</code>, ligne par ligne</h3>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — le .csproj joue le rôle du composer.json</div>
+        Comme <code>composer.json</code>, le <code>.csproj</code> liste les dépendances du projet. Il dit aussi au
+        compilateur <em>comment</em> construire le programme&nbsp;: quel type d'exécutable, quelle version de
+        .NET, quelles options. Visual Studio le modifie pour toi&nbsp;; savoir le lire évite de deviner.
+      </div>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>WpfNotes.CodeBehind.csproj</div>
+  <div class="code-wrap"><pre class="code">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+    &lt;TargetFramework&gt;net10.0-windows&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;UseWPF&gt;true&lt;/UseWPF&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="MaterialDesignThemes" Version="5.3.2" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>OutputType</code> = <code>WinExe</code> — un exécutable Windows sans console noire derrière la
+            fenêtre.</li>
+          <li><code>TargetFramework</code> = <code>net10.0-windows</code> — .NET 10, avec les bibliothèques
+            propres à Windows dont WPF a besoin.</li>
+          <li><code>Nullable</code> = <code>enable</code> — le compilateur distingue une valeur qui ne peut pas être
+            nulle d'une valeur qui peut l'être. On l'utilisera au sprint 2.</li>
+          <li><code>ImplicitUsings</code> = <code>enable</code> — les <code>using</code> les plus courants
+            (l'équivalent des <code>use</code> de PHP) sont ajoutés automatiquement dans chaque fichier.</li>
+          <li><code>UseWPF</code> = <code>true</code> — fait de ce projet un projet WPF&nbsp;: les fichiers
+            <code>.xaml</code> sont compilés.</li>
+          <li><code>PackageReference</code> — une ligne par package NuGet, avec sa version exacte.</li>
+        </ul>
+      </div>
+
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        Lance l'application avec F5. La fenêtre générée par Visual Studio s'affiche, vide. Rien de spectaculaire,
+        mais le projet compile et le thème se charge sans erreur.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape2">
+    <div class="part-head"><div class="part-num">3</div><h2>Étape 2 — La fenêtre principale</h2></div>
+    <p class="part-sub">Barre d'application, zone d'écran, nom d'un élément.</p>
+    <div class="prose">
+
+      <h3>2.1 — Ce qu'on va construire</h3>
+      <p>
+        La fenêtre principale ne change jamais. En haut, une barre violette avec le titre. En dessous, une zone qui
+        affiche l'écran courant&nbsp;: la liste des notes, ou une note.
+      </p>
+      <div class="diagram">
+        <svg viewBox="0 0 640 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="La fenêtre MainWindow contient une barre ColorZone en haut et un ContentControl nommé MainContent en dessous. ShowAllNotes y place AllNotesView, ShowNote y place NoteView.">
+          <defs>
+            <marker id="s1-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" style="fill:var(--muted)" />
+            </marker>
+          </defs>
+          <rect x="20" y="16" width="360" height="282" rx="8" style="fill:var(--surface);stroke:var(--line)" stroke-width="1.5" />
+          <text x="36" y="36" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">MainWindow — la fenêtre</text>
+          <rect x="20" y="48" width="360" height="46" style="fill:var(--accent)" />
+          <text x="40" y="77" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="16" style="fill:var(--surface)">Mes notes</text>
+          <text x="368" y="76" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" style="fill:var(--surface)">ColorZone</text>
+          <rect x="36" y="108" width="328" height="174" rx="6" style="fill:var(--surface-2);stroke:var(--accent)" stroke-width="1.2" stroke-dasharray="5 4" />
+          <text x="200" y="182" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="12" style="fill:var(--accent-strong)">ContentControl</text>
+          <text x="200" y="201" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--muted)">x:Name="MainContent"</text>
+          <text x="200" y="226" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="12" style="fill:var(--ink-soft)">affiche l'écran courant</text>
+
+          <text x="530" y="100" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--muted)">ShowAllNotes()</text>
+          <rect x="440" y="108" width="180" height="66" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.2" />
+          <text x="530" y="137" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--accent-strong)">AllNotesView</text>
+          <text x="530" y="157" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="12" style="fill:var(--ink-soft)">la liste des notes</text>
+
+          <text x="530" y="208" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--muted)">ShowNote()</text>
+          <rect x="440" y="216" width="180" height="66" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.2" />
+          <text x="530" y="245" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--accent-strong)">NoteView</text>
+          <text x="530" y="265" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="12" style="fill:var(--ink-soft)">une note</text>
+
+          <path d="M440 141 L370 176" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s1-arrow)" />
+          <path d="M440 249 L370 216" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s1-arrow)" />
+        </svg>
+      </div>
+      <p>
+        L'écran affiché n'est donc pas une nouvelle fenêtre&nbsp;: c'est un objet qu'on place dans la zone
+        <code>MainContent</code>, et qu'on remplace par un autre pour changer d'écran.
+      </p>
+
+      <h3>2.2 — Le XAML de la fenêtre</h3>
+      <p>Remplace tout le contenu de <code>MainWindow.xaml</code> par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>MainWindow.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Window
+    x:Class="WpfNotes.CodeBehind.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    Title="WpfNotes"
+    Width="900"
+    Height="600"
+    WindowStartupLocation="CenterScreen"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{materialDesign:MaterialDesignFont}"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"&gt;
+
+    &lt;DockPanel&gt;
+
+        &lt;!-- Barre d'application : le titre --&gt;
+        &lt;materialDesign:ColorZone
+            Padding="16"
+            DockPanel.Dock="Top"
+            Mode="PrimaryMid"&gt;
+            &lt;TextBlock FontSize="20" Text="Mes notes" /&gt;
+        &lt;/materialDesign:ColorZone&gt;
+
+        &lt;!-- L'écran affiché : la liste des notes ou une note --&gt;
+        &lt;ContentControl x:Name="MainContent" /&gt;
+
+    &lt;/DockPanel&gt;
+&lt;/Window&gt;</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — un élément peut en contenir d'autres</div>
+        Le XAML forme un arbre&nbsp;: la <code>Window</code> contient un <code>DockPanel</code>, qui contient une
+        <code>ColorZone</code> et un <code>ContentControl</code>&nbsp;; la <code>ColorZone</code> contient à son tour le
+        titre. Les <b>panneaux</b> (<code>DockPanel</code>, <code>Grid</code>, <code>StackPanel</code>…) n'affichent
+        rien eux-mêmes&nbsp;: leur rôle est de placer leurs enfants.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>Title</code>, <code>Width</code>, <code>Height</code>, <code>WindowStartupLocation</code> —
+            le titre, la taille et la position de la fenêtre à l'ouverture.</li>
+          <li><code>Background</code>, <code>FontFamily</code>, <code>TextElement.Foreground</code> — la couleur de
+            fond, la police et la couleur du texte du thème Material Design.
+            <code>{DynamicResource …}</code> va chercher une ressource du thème par son nom.</li>
+          <li><code>DockPanel</code> — accroche chaque enfant à un bord (<code>DockPanel.Dock="Top"</code> pour la
+            barre). Le dernier enfant occupe toute la place restante&nbsp;: c'est la zone d'écran.</li>
+          <li><code>materialDesign:ColorZone</code> — un rectangle aux couleurs du thème. <code>Mode="PrimaryMid"</code>
+            choisit la couleur principale, le violet, et <code>Padding="16"</code> laisse 16 pixels autour du
+            titre.</li>
+          <li><code>ContentControl</code> — une boîte vide, capable d'afficher n'importe quel contenu qu'on lui
+            donne depuis le C#.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — <code>x:Name</code>, un pont vers le C#</div>
+        <code>x:Name="MainContent"</code> donne un nom à l'élément. Dans le code-behind, ce nom devient un
+        <b>champ</b> de la classe&nbsp;: à l'étape 3, tu pourras écrire <code>MainContent.Content = …;</code> pour
+        changer l'écran affiché. Un élément qu'on n'utilise pas depuis le C#, comme le titre, n'a pas besoin de nom.
+      </div>
+
+      <h3>2.3 — Le code-behind de la fenêtre</h3>
+      <p>Remplace tout le contenu de <code>MainWindow.xaml.cs</code> par cette première version&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>MainWindow.xaml.cs — première version</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+
+namespace WpfNotes.CodeBehind;
+
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+    }
+}</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — <code>using</code>, <code>namespace</code>, <code>:</code></div>
+        <ul>
+          <li><code>using System.Windows;</code> correspond à un <code>use</code>&nbsp;: il rend utilisables les
+            classes de l'espace de noms <code>System.Windows</code> (dont <code>Window</code>) sans écrire leur
+            nom complet.</li>
+          <li><code>namespace WpfNotes.CodeBehind;</code> s'écrit exactement comme en PHP, avec des points à la place
+            des antislashs.</li>
+          <li><code>class MainWindow : Window</code> se lit «&nbsp;<code>MainWindow</code> hérite de
+            <code>Window</code>&nbsp;»&nbsp;: le <code>:</code> remplace <code>extends</code>. La fenêtre hérite de
+            tout le comportement d'une fenêtre (s'ouvrir, se fermer, avoir un titre…).</li>
+        </ul>
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>partial</code> — la classe est écrite en deux morceaux&nbsp;: le XAML, que Visual Studio
+            transforme en un fichier C# caché, et ce fichier-ci. <code>partial</code> dit au compilateur «&nbsp;cette
+            classe continue ailleurs&nbsp;». C'est dans le morceau caché qu'est déclaré le champ
+            <code>MainContent</code>.</li>
+          <li><code>public MainWindow()</code> — le constructeur, appelé quand WPF crée la fenêtre.</li>
+          <li><code>InitializeComponent();</code> — lit le XAML et crée réellement tous les objets qu'il décrit.
+            Sans cet appel, la fenêtre resterait vide.</li>
+        </ul>
+      </div>
+
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        La fenêtre s'ouvre au centre de l'écran avec une barre violette et le titre «&nbsp;Mes notes&nbsp;». La zone
+        du dessous est vide.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape3">
+    <div class="part-head"><div class="part-num">4</div><h2>Étape 3 — Deux écrans et la navigation</h2></div>
+    <p class="part-sub">UserControl, événement Click, conversion de type, superposition dans un Grid, méthodes publiques.</p>
+    <div class="prose">
+
+      <h3>3.1 — L'écran d'une note&nbsp;: <code>NoteView</code></h3>
+      <div class="concept">
+        <div class="tagline">Notion — le <code>UserControl</code>, un morceau d'écran</div>
+        Une <code>Window</code> est une fenêtre complète, avec sa bordure et ses boutons de fermeture. Un
+        <code>UserControl</code> est un <b>morceau d'écran</b> qu'on place à l'intérieur d'une fenêtre. Nos deux
+        écrans seront des <code>UserControl</code>, affichés tour à tour dans la zone <code>MainContent</code>.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — comme un composant Blade</div>
+        Un <code>UserControl</code> ressemble à un composant Blade (<code>&lt;x-note-card /&gt;</code>)&nbsp;: un
+        bout d'interface rangé dans son propre fichier. La différence&nbsp;: c'est un vrai objet, qu'on crée avec
+        <code>new</code> et qui garde son état tant qu'il est affiché.
+      </div>
+      <div class="explain">
+        <div class="tagline">Étapes dans Visual Studio</div>
+        <ol>
+          <li>Clic droit sur le projet → Ajouter → Nouveau dossier → <code>Views</code>.</li>
+          <li>Clic droit sur <code>Views</code> → Ajouter → Nouvel élément… → <b>Contrôle utilisateur (WPF)</b> →
+            nomme-le <code>NoteView.xaml</code>. Deux fichiers sont créés&nbsp;: le XAML et son code-behind.</li>
+        </ol>
+      </div>
+      <p>
+        L'écran d'une note contient un champ de saisie et, en bas, un bouton Annuler qui ramène à la liste. Les
+        boutons Enregistrer et Supprimer viendront aux sprints suivants. Remplace le contenu de
+        <code>NoteView.xaml</code> par&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>Views/NoteView.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.CodeBehind.Views.NoteView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;DockPanel Margin="16"&gt;
+
+        &lt;!-- En bas : les boutons d'action --&gt;
+        &lt;StackPanel
+            Margin="0,16,0,0"
+            HorizontalAlignment="Right"
+            DockPanel.Dock="Bottom"
+            Orientation="Horizontal"&gt;
+            &lt;Button
+                Click="CancelButton_Click"
+                Content="Annuler"
+                Style="{StaticResource MaterialDesignFlatButton}" /&gt;
+        &lt;/StackPanel&gt;
+
+        &lt;!-- Au centre : le texte de la note --&gt;
+        &lt;TextBox
+            x:Name="NoteText"
+            VerticalContentAlignment="Top"
+            materialDesign:HintAssist.Hint="Votre note"
+            AcceptsReturn="True"
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+            TextWrapping="Wrap"
+            VerticalScrollBarVisibility="Auto" /&gt;
+    &lt;/DockPanel&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>x:Class="WpfNotes.CodeBehind.Views.NoteView"</code> — la classe se trouve dans l'espace de noms
+            <code>…Views</code>, comme le dossier. C'est une convention, la même qu'en PHP avec PSR-4.</li>
+          <li><code>Margin="16"</code> — une marge de 16 pixels sur les quatre côtés.</li>
+          <li>Le <code>DockPanel</code> place la rangée de boutons en bas (<code>Dock="Bottom"</code>)&nbsp;; le
+            champ de saisie, dernier enfant, occupe tout le reste.</li>
+          <li><code>StackPanel</code> avec <code>Orientation="Horizontal"</code> — aligne ses enfants côte à côte,
+            ici calés à droite. Il ne contient qu'un bouton pour l'instant.</li>
+          <li><code>MaterialDesignFlatButton</code> — un bouton sans fond, discret&nbsp;: Annuler est une action
+            secondaire.</li>
+          <li><code>Style="{StaticResource MaterialDesignOutlinedTextBox}"</code> — un champ de saisie encadré, au
+            style Material Design.</li>
+          <li><code>materialDesign:HintAssist.Hint</code> — le texte d'indice affiché dans le champ vide.</li>
+          <li><code>AcceptsReturn="True"</code> et <code>TextWrapping="Wrap"</code> — la touche Entrée crée une
+            nouvelle ligne, et les lignes trop longues passent à la ligne.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — la propriété attachée</div>
+        <code>HintAssist.Hint</code> n'est pas une propriété de <code>TextBox</code>&nbsp;: elle est définie par une
+        autre classe, <code>HintAssist</code>, fournie par MaterialDesign, et «&nbsp;attachée&nbsp;» au champ. La
+        syntaxe <code>Classe.Propriété="valeur"</code> le signale. Tu en as déjà croisé une&nbsp;:
+        <code>DockPanel.Dock="Top"</code>, que le <code>DockPanel</code> parent lit pour placer son enfant.
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — l'événement <code>Click</code></div>
+        <code>Click="CancelButton_Click"</code> abonne le bouton à son <b>événement</b> Click&nbsp;: à chaque clic,
+        WPF appelle la méthode <code>CancelButton_Click</code> du code-behind. On l'écrit juste après.
+      </div>
+      <p>Remplace ensuite le contenu de <code>NoteView.xaml.cs</code> par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Views/NoteView.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using System.Windows.Controls;
+
+namespace WpfNotes.CodeBehind.Views;
+
+public partial class NoteView : UserControl
+{
+    public NoteView()
+    {
+        InitializeComponent();
+    }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Revenir à la liste, sans rien enregistrer
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowAllNotes();
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>private void CancelButton_Click(object sender, RoutedEventArgs e)</code> — la méthode appelée au
+            clic. <code>void</code> signifie qu'elle ne renvoie rien. WPF lui passe deux informations&nbsp;:
+            <code>sender</code>, l'objet qui a déclenché l'événement (le bouton), et <code>e</code>, des détails sur
+            l'événement. On se servira de <code>sender</code> au sprint 3.</li>
+          <li><code>Window.GetWindow(this)</code> — appelle une méthode <b>statique</b> de la classe
+            <code>Window</code>, c'est-à-dire une méthode qu'on appelle sur la classe et non sur un objet. En PHP, tu
+            écrirais <code>Window::getWindow($this)</code>&nbsp;: C# utilise le point dans les deux cas. Elle renvoie
+            la fenêtre qui contient l'écran.</li>
+          <li><code>this</code> — l'objet courant, ici l'écran <code>NoteView</code>, comme <code>$this</code> en
+            PHP.</li>
+          <li><code>mainWindow.ShowAllNotes();</code> — demande à la fenêtre d'afficher la liste. Le texte tapé
+            n'est enregistré nulle part&nbsp;: il est perdu, c'est le rôle d'Annuler.</li>
+        </ul>
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — une variable typée</div>
+        En PHP, tu écrirais <code>$mainWindow = …;</code>. En C#, on déclare le type de la variable devant son
+        nom&nbsp;: <code>MainWindow mainWindow = …;</code>. Le compilateur vérifie ensuite que tu n'appelles sur
+        <code>mainWindow</code> que des méthodes qui existent vraiment dans la classe <code>MainWindow</code>.
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — la conversion de type <code>(MainWindow)</code></div>
+        Le type de retour de <code>Window.GetWindow</code> est <code>Window</code>, le type général de toutes les
+        fenêtres. Or la méthode <code>ShowAllNotes</code> n'existe que dans <b>notre</b> classe
+        <code>MainWindow</code>. On écrit donc <code>(MainWindow)</code> devant&nbsp;: c'est une <b>conversion de
+        type</b>, qui dit au compilateur «&nbsp;je sais que cette fenêtre est une <code>MainWindow</code>&nbsp;». Si ce
+        n'était pas le cas, l'application s'arrêterait sur une erreur à l'exécution.
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — le nom de la méthode doit correspondre</div>
+        Le texte de <code>Click="CancelButton_Click"</code> doit être identique au nom de la méthode, majuscules
+        comprises. Sinon, la compilation échoue avec un message du type «&nbsp;<code>NoteView</code> ne contient pas
+        de définition pour <code>CancelButton_Click</code>&nbsp;».
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — <code>ShowAllNotes</code> est soulignée en rouge</div>
+        Visual Studio signale que <code>ShowAllNotes</code> n'existe pas&nbsp;: c'est normal, tu l'écris en 3.3. Le
+        projet compilera à nouveau à la fin de l'étape.
+      </div>
+
+      <h3>3.2 — L'écran de la liste&nbsp;: <code>AllNotesView</code></h3>
+      <p>
+        Crée de la même façon un contrôle utilisateur <code>Views/AllNotesView.xaml</code>. La liste des notes
+        arrivera au sprint 3&nbsp;; pour l'instant, l'écran affiche un message et un bouton «&nbsp;+&nbsp;».
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>Views/AllNotesView.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.CodeBehind.Views.AllNotesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;Grid&gt;
+        &lt;TextBlock
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Opacity="0.7"
+            Text="Aucune note. Cliquez sur + pour en créer une." /&gt;
+
+        &lt;!-- Bouton flottant « Nouvelle note » --&gt;
+        &lt;Button
+            Margin="24"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Click="NewNoteButton_Click"
+            Style="{StaticResource MaterialDesignFloatingActionButton}"
+            ToolTip="Nouvelle note"&gt;
+            &lt;materialDesign:PackIcon
+                Width="24"
+                Height="24"
+                Kind="Plus" /&gt;
+        &lt;/Button&gt;
+    &lt;/Grid&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — un <code>Grid</code> sans lignes ni colonnes superpose ses enfants</div>
+        Un <code>Grid</code> sans <code>RowDefinitions</code> ni <code>ColumnDefinitions</code> n'a qu'une seule
+        cellule&nbsp;: tous ses enfants s'y empilent, les uns <em>au-dessus</em> des autres. On s'en sert pour faire
+        flotter le bouton «&nbsp;+&nbsp;» par-dessus le reste de l'écran, aligné en bas à droite.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>HorizontalAlignment</code> et <code>VerticalAlignment</code> — la position de l'élément dans sa
+            cellule&nbsp;: centré pour le message, en bas à droite pour le bouton.</li>
+          <li><code>Opacity="0.7"</code> — le message est légèrement transparent, pour paraître secondaire.</li>
+          <li><code>MaterialDesignFloatingActionButton</code> — le style du bouton rond «&nbsp;flottant&nbsp;» de
+            Material Design, réservé à l'action principale de l'écran.</li>
+          <li>Le bouton ne contient pas de texte mais une icône&nbsp;: un bouton peut contenir n'importe quel
+            élément. <code>materialDesign:PackIcon Kind="Plus"</code> choisit une icône parmi des milliers, par son
+            nom.</li>
+        </ul>
+      </div>
+      <p>Puis le code-behind, sur le même principe qu'Annuler&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Views/AllNotesView.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using System.Windows.Controls;
+
+namespace WpfNotes.CodeBehind.Views;
+
+public partial class AllNotesView : UserControl
+{
+    public AllNotesView()
+    {
+        InitializeComponent();
+    }
+
+    private void NewNoteButton_Click(object sender, RoutedEventArgs e)
+    {
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowNote();
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        Au clic sur «&nbsp;+&nbsp;», l'écran retrouve la fenêtre, avec la même conversion de type qu'en 3.1, et lui
+        demande d'afficher l'écran d'une note. <code>ShowNote</code> est soulignée en rouge pour la même raison que
+        <code>ShowAllNotes</code>&nbsp;: elle arrive en 3.3.
+      </div>
+
+      <h3>3.3 — La navigation dans <code>MainWindow</code></h3>
+      <p>Complète <code>MainWindow.xaml.cs</code>&nbsp;: voici sa version finale pour ce sprint.</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>MainWindow.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using WpfNotes.CodeBehind.Views;
+
+namespace WpfNotes.CodeBehind;
+
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+        ShowAllNotes();
+    }
+
+    // Affiche l'écran « liste des notes »
+    public void ShowAllNotes()
+    {
+        MainContent.Content = new AllNotesView();
+    }
+
+    // Affiche l'écran « une note »
+    public void ShowNote()
+    {
+        MainContent.Content = new NoteView();
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>using WpfNotes.CodeBehind.Views;</code> — rend utilisables les classes du dossier
+            <code>Views</code>.</li>
+          <li><code>MainContent.Content = new AllNotesView();</code> — crée un nouvel écran «&nbsp;liste&nbsp;» et le
+            place dans la zone d'écran. L'écran précédent n'est plus référencé par personne&nbsp;: .NET libère sa
+            mémoire tout seul, comme PHP.</li>
+          <li><code>public</code> — <code>ShowAllNotes</code> et <code>ShowNote</code> sont appelées depuis les
+            écrans, donc depuis une autre classe&nbsp;: elles doivent être publiques. Une méthode qui ne sert qu'à
+            l'intérieur de sa classe, comme <code>CancelButton_Click</code>, reste privée.</li>
+          <li>Le constructeur appelle <code>ShowAllNotes()</code>&nbsp;: au démarrage, c'est la liste qui
+            s'affiche.</li>
+        </ul>
+      </div>
+      <p>Pour résumer, un clic sur «&nbsp;+&nbsp;» déclenche cette suite d'appels&nbsp;:</p>
+      <div class="explain">
+        <ol>
+          <li>WPF appelle <code>NewNoteButton_Click</code> dans <code>AllNotesView</code>.</li>
+          <li>Cette méthode retrouve la fenêtre et appelle sa méthode <code>ShowNote()</code>.</li>
+          <li><code>ShowNote()</code> place un nouvel objet <code>NoteView</code> dans <code>MainContent</code>.</li>
+        </ol>
+        Un clic sur Annuler suit le chemin inverse, jusqu'à <code>ShowAllNotes()</code>.
+      </div>
+
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        <ol>
+          <li>Au lancement, la liste s'affiche&nbsp;: le message «&nbsp;Aucune note…&nbsp;» et le bouton «&nbsp;+&nbsp;»
+            en bas à droite.</li>
+          <li>Clique sur «&nbsp;+&nbsp;»&nbsp;: l'écran d'une note apparaît, avec son champ de saisie et le bouton
+            Annuler.</li>
+          <li>Tape un texte, puis clique sur Annuler&nbsp;: tu reviens à la liste. Le texte est perdu&nbsp;:
+            l'enregistrement arrive au sprint 2.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="bilan">
+    <div class="part-head"><div class="part-num">5</div><h2>Bilan des notions vues</h2></div>
+    <div class="prose">
+      <p>Chaque notion a été introduite au moment où le code en avait besoin&nbsp;:</p>
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Notion</th><th>Étape</th><th>Rôle dans le TP</th></tr></thead>
+          <tbody>
+            <tr><td>Typage statique</td><td class="step">—</td><td>Chaque variable, paramètre et retour a un type, vérifié avant l'exécution.</td></tr>
+            <tr><td>Solution / projet</td><td class="step">1</td><td>Une solution regroupe des projets&nbsp;; chaque projet produit un programme.</td></tr>
+            <tr><td>Package NuGet</td><td class="step">1</td><td>Une bibliothèque externe, comme un paquet Composer.</td></tr>
+            <tr><td>ResourceDictionary</td><td class="step">1</td><td>Les styles et couleurs du thème, partagés par toute l'application.</td></tr>
+            <tr><td>.csproj</td><td class="step">1</td><td>Comment compiler le projet, et de quoi il dépend.</td></tr>
+            <tr><td>Héritage <code>:</code></td><td class="step">2</td><td><code>MainWindow : Window</code>, l'équivalent de <code>extends</code>.</td></tr>
+            <tr><td>partial</td><td class="step">2</td><td>Une classe écrite en deux morceaux&nbsp;: le XAML compilé et le code-behind.</td></tr>
+            <tr><td>x:Name</td><td class="step">2</td><td>Un élément du XAML devient un champ utilisable en C#.</td></tr>
+            <tr><td>UserControl</td><td class="step">3</td><td>Un morceau d'écran, affiché dans la fenêtre.</td></tr>
+            <tr><td>Événement Click</td><td class="step">3</td><td>WPF appelle une méthode du code-behind à chaque clic.</td></tr>
+            <tr><td>Propriété attachée</td><td class="step">3</td><td><code>HintAssist.Hint</code>, <code>DockPanel.Dock</code>&nbsp;: une propriété définie par une autre classe.</td></tr>
+            <tr><td>Conversion de type</td><td class="step">3</td><td><code>(MainWindow)</code>&nbsp;: traiter un objet <code>Window</code> comme notre <code>MainWindow</code>.</td></tr>
+            <tr><td>public / private</td><td class="step">3</td><td>Une méthode appelée depuis une autre classe doit être publique.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="git">
+    <div class="part-head"><div class="part-num">6</div><h2>Fin de sprint&nbsp;: commit &amp; tag</h2></div>
+    <div class="prose">
+      <p>Premier commit du projet. S'il n'existe pas encore de dépôt Git dans ce dossier, initialise-le d'abord&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine du dépôt</div>
+  <div class="code-wrap"><pre class="code">git init</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — pourquoi exclure des dossiers du suivi Git&nbsp;?</div>
+        <code>bin/</code> et <code>obj/</code> contiennent ce que la compilation produit&nbsp;: ils sont recréés à
+        chaque F5, inutile de les versionner. <code>.vs/</code> est le cache de Visual Studio, propre à ta machine.
+        C'est le même principe que <code>vendor/</code> dans le <code>.gitignore</code> d'un projet Laravel.
+      </div>
+      <p>À la racine du dépôt, crée un fichier <code>.gitignore</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>.gitignore — nouveau fichier, à la racine du dépôt</div>
+  <div class="code-wrap"><pre class="code">.vs
+WpfNotes.CodeBehind/bin
+WpfNotes.CodeBehind/obj</pre></div>
+</div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — le .gitignore avant le premier commit</div>
+        Un <code>.gitignore</code> n'agit que sur des fichiers pas encore suivis. Crée-le avant le tout premier
+        <code>git add .</code>, sinon <code>bin/</code> et <code>obj/</code> seraient déjà dans le dépôt.
+      </div>
+      <p>Ajoute, commite, tague et pousse&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine du dépôt</div>
+  <div class="code-wrap"><pre class="code">git add .
+git commit -m "Sprint 1 : projet WPF + Material Design, fenêtre principale et navigation"
+git tag sprint-01
+git push -u origin main
+git push --tags</pre></div>
+</div>
+      <p>
+        Le dépôt de référence <code>NoteApp</code> contient ce même état au tag <code>sprint-01</code> de la branche
+        <code>codeBehind</code>&nbsp;: compare avec ton code si quelque chose ne fonctionne pas.
+      </p>
+      <p class="sprintnav"><span></span><a href="../sprint-02/guide-sprint-02.html">Sprint 2 — Créer et enregistrer une note →</a></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>NoteApp · Version code-behind — Guide TP sprint 1, créer le projet et naviguer entre deux écrans</p>
+  </footer>
+
+</div>

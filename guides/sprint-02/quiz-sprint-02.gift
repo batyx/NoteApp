@@ -1,0 +1,64 @@
+// NoteApp/Sprint 2 - Créer et enregistrer une note : quiz de validation (10 questions, QCM à réponse unique, sans pénalité)
+// Import Moodle : Banque de questions > Importer > format GIFT, encodage UTF-8
+
+$CATEGORY: NoteApp/Sprint 2 - Créer et enregistrer une note
+
+::S2-01 [facile]:: [plain]Dans public string? Filename \{ get; set; \}, que signifie le point d'interrogation ? {
+~Que la propriété est facultative quand on appelle le constructeur de Note. #Le constructeur n'est pas concerné \: le ? porte sur la valeur de la propriété.
+~Que la propriété est en lecture seule. #Non \: get et set la rendent lisible et modifiable.
+=Que Filename peut valoir null, comme ?string en PHP. #Exact \: une note jamais enregistrée n'a pas encore de nom de fichier.
+}
+
+::S2-02 [facile]:: [plain]Quel est l'équivalent C\# de file_put_contents($path, $text) ? {
+=File.WriteAllText(path, text) #Exact \: il crée le fichier ou remplace son contenu.
+~File.ReadAllText(path) #C'est l'équivalent de file_get_contents \: il lit le fichier, il ne l'écrit pas.
+~Directory.CreateDirectory(path) #Il crée un dossier, comme mkdir, sans rien écrire dedans.
+}
+
+::S2-03 [facile]:: [plain]Comment assemble-t-on deux textes en C\# ? {
+~Avec un point \: "note-" . date #C'est l'opérateur de concaténation de PHP. En C\#, le point sert à accéder aux membres d'un objet.
+=Avec le signe plus \: "note-" + date #Exact \: + concatène les textes, comme dans le nom de fichier de SaveButton_Click.
+~Avec une esperluette \: "note-" & date #& n'est pas l'opérateur de concaténation en C\#.
+}
+
+::S2-04 [moyen]:: [plain]Pour savoir si une note a déjà été enregistrée, pourquoi teste-t-on Filename \=\= null plutôt que la date ? {
+~Parce que la propriété Date est privée et inaccessible depuis NoteView. #Date est publique, comme les autres propriétés de Note.
+~Parce que comparer une date à null est interdit par le compilateur. #La vraie raison est plus simple \: une DateTime ne vaut jamais null.
+=Parce qu'une DateTime n'est jamais nulle \: non initialisée, elle vaut le 1er janvier de l'an 1. #Exact \: seul Filename, de type string?, peut indiquer qu'aucun fichier n'existe encore.
+}
+
+::S2-05 [moyen]:: [plain]Dans NoteView, le champ est déclaré private readonly Note _note. Hors du constructeur, quelle instruction le compilateur refuse-t-il ? {
+=_note \= new Note(); #Exact \: readonly interdit de faire pointer le champ vers un autre objet après le constructeur.
+~_note.Text \= NoteText.Text; #C'est autorisé \: readonly protège le champ, pas les propriétés de la note.
+~string text \= _note.Text; #Lire une propriété est toujours autorisé.
+}
+
+::S2-06 [moyen]:: [plain]AllNotesView crée une note et la transmet à NoteView, qui modifie _note.Text. Qu'en est-il de la note créée dans AllNotesView ? {
+~Elle reste inchangée \: NoteView a reçu une copie de la note. #Non \: un objet n'est pas copié quand on le transmet, seule sa référence circule.
+=Elle est modifiée aussi \: il s'agit du même objet en mémoire. #Exact \: les deux écrans désignent le même objet Note, comme avec les objets en PHP.
+~Le compilateur refuse la modification, car la note appartient à AllNotesView. #Rien n'interdit de modifier un objet reçu en paramètre.
+}
+
+::S2-07 [moyen]:: [plain]Que signifie static dans public static readonly string NotesFolder ? {
+~Que la valeur est recalculée à chaque création d'une MainWindow. #C'est l'inverse \: la donnée existe une seule fois, partagée.
+~Que la donnée n'est lisible que depuis le code de MainWindow. #C'est public qui la rend lisible partout ; static dit à qui elle appartient.
+=Que la donnée appartient à la classe \: on la lit avec MainWindow.NotesFolder, sans objet. #Exact \: c'est l'équivalent de MainWindow\:\:$notesFolder en PHP.
+}
+
+::S2-08 [moyen]:: [plain]Pourquoi utiliser Path.Combine plutôt que d'assembler le chemin à la main avec des antislashs ? {
+=Parce qu'il ajoute les séparateurs au bon endroit, sans en oublier ni en doubler. #Exact \: Path.Combine assemble les morceaux de chemin proprement.
+~Parce qu'il crée le dossier s'il n'existe pas encore. #C'est le rôle de Directory.CreateDirectory, pas de Path.Combine.
+~Parce qu'il vérifie que le fichier existe avant d'écrire dedans. #Path.Combine ne lit pas le disque \: il ne fait qu'assembler du texte.
+}
+
+::S2-09 [difficile]:: [plain]On oublie la ligne using System.IO; dans NoteView.xaml.cs. Que se passe-t-il ? {
+~Rien \: ImplicitUsings ajoute System.IO dans tous les projets. #Dans un projet WPF, System.IO ne fait pas partie des using implicites.
+=La compilation échoue \: le nom Path (ou File) n'existe pas dans le contexte actuel. #Exact \: Path, File et Directory appartiennent à l'espace de noms System.IO.
+~Un simple avertissement s'affiche, et le fichier est écrit dans le dossier du projet. #Ce n'est pas un avertissement mais une erreur \: sans using, le compilateur ne connaît pas ces classes.
+}
+
+::S2-10 [difficile]:: [plain]On remplace le bloc if (MainSnackbar.MessageQueue !\= null) par l'appel direct MainSnackbar.MessageQueue.Enqueue(message). Que signale le compilateur ? {
+~Rien \: le compilateur ne s'intéresse pas aux valeurs nulles. #Le projet active Nullable \: le compilateur suit les valeurs qui peuvent être nulles.
+~Une erreur \: il est interdit d'appeler une méthode sur une propriété. #Appeler une méthode sur une propriété est courant ; le problème vient du null possible.
+=Un avertissement \: MessageQueue est déclarée nullable, son utilisation peut provoquer une erreur. #Exact \: MaterialDesign déclare MessageQueue nullable, d'où la vérification avant de s'en servir.
+}

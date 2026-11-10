@@ -1,0 +1,1166 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteApp — Sprint 3, afficher, ouvrir et supprimer les notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+:root{
+  --bg:#f5f3fa;
+  --surface:#ffffff;
+  --surface-2:#efebf8;
+  --ink:#211b34;
+  --ink-soft:#4a4360;
+  --muted:#726b8c;
+  --accent:#4c2d84;
+  --accent-strong:#341f5c;
+  --accent-tint:#eae3f8;
+  --lime:#5c8a29;
+  --lime-tint:#e9f3da;
+  --line:#e1dbf0;
+  --code-bg:#1e1b2b;
+  --code-header:#171420;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#9b7ee8;
+  --danger:#a6192e;
+  --danger-tint:#fbe7ea;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(33,27,52,.06), 0 8px 24px -12px rgba(33,27,52,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121f;
+    --surface:#1c1830;
+    --surface-2:#241f3d;
+    --ink:#efe9fb;
+    --ink-soft:#cabfe6;
+    --muted:#9186ad;
+    --accent:#b394f0;
+    --accent-strong:#d6c2ff;
+    --accent-tint:#2c2350;
+    --lime:#a5d66b;
+    --lime-tint:#26301c;
+    --line:#332a52;
+    --code-bg:#100e1a;
+    --code-header:#0b0a13;
+    --code-fg:#e8e3f5;
+    --code-muted:#8b83a8;
+    --code-accent:#b394f0;
+    --danger:#ff8fa3;
+    --danger-tint:#3a1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121f;
+  --surface:#1c1830;
+  --surface-2:#241f3d;
+  --ink:#efe9fb;
+  --ink-soft:#cabfe6;
+  --muted:#9186ad;
+  --accent:#b394f0;
+  --accent-strong:#d6c2ff;
+  --accent-tint:#2c2350;
+  --lime:#a5d66b;
+  --lime-tint:#26301c;
+  --line:#332a52;
+  --code-bg:#100e1a;
+  --code-header:#0b0a13;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#b394f0;
+  --danger:#ff8fa3;
+  --danger-tint:#3a1b23;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.62;
+}
+h1,h2,h3,h4{
+  font-family:"Barlow Semi Condensed","Segoe UI",sans-serif;
+  font-weight:700;color:var(--ink);text-wrap:balance;margin:0;
+}
+code, pre, .mono{font-family:"JetBrains Mono",Consolas,monospace;}
+::selection{background:var(--accent-tint);}
+a{color:var(--accent);}
+p{margin:0 0 14px;}
+p:last-child{margin-bottom:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:840px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14.5px;
+  letter-spacing:.02em;white-space:nowrap;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+.pillnav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.pillnav::-webkit-scrollbar{display:none;}
+.pillnav a{
+  flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:6px 9px;border-radius:999px;border:1px solid transparent;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.pillnav a:hover{background:var(--surface-2);color:var(--ink);}
+
+.container{max-width:840px;margin:0 auto;padding:0 24px;}
+.prose{max-width:680px;}
+
+/* ---------- Header ---------- */
+.pageintro{padding:44px 0 8px;}
+.eyebrow{
+  font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px;
+}
+.pageintro h1{font-size:clamp(27px,4vw,38px);line-height:1.08;max-width:22ch;margin-bottom:14px;}
+.pageintro p.lede{max-width:62ch;color:var(--ink-soft);font-size:16.5px;}
+
+.metastrip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;margin:28px 0 40px;
+}
+.metacell{background:var(--surface);padding:13px 16px;}
+.metacell .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.metacell .val{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);}
+@media (max-width:640px){.metastrip{grid-template-columns:1fr 1fr;}}
+
+/* ---------- Part sections ---------- */
+.part{scroll-margin-top:64px;padding:6px 0 46px;border-bottom:1px solid var(--line);}
+.part:last-of-type{border-bottom:none;}
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.part-num{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;
+  color:var(--surface);background:var(--accent);
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.part-head h2{font-size:23px;}
+.part-sub{margin:0 0 18px 44px;color:var(--muted);font-size:14.5px;}
+.part > .prose > h3{font-size:16.5px;margin:28px 0 10px;color:var(--ink);}
+.part > .prose > h3:first-child{margin-top:0;}
+
+/* ---------- Recurring blocks ---------- */
+.tagline{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 0;margin-bottom:8px;
+}
+.concept{
+  background:var(--accent-tint);border-radius:0 8px 8px 0;border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.concept .tagline{color:var(--accent-strong);}
+.concept b{color:var(--ink);}
+
+.explain{
+  background:var(--surface-2);border-radius:8px;padding:14px 18px;margin:0 0 16px;
+  font-size:14.5px;color:var(--ink-soft);
+}
+.explain .tagline{color:var(--muted);}
+.explain code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.92em;color:var(--ink);}
+.explain b{color:var(--ink);}
+.explain ul,.explain ol{margin:8px 0 0;padding-left:20px;}
+.explain li{margin-bottom:6px;}
+.explain li:last-child{margin-bottom:0;}
+
+.watch{
+  border-left:3px solid var(--danger);background:var(--danger-tint);border-radius:0 8px 8px 0;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-soft);
+}
+.watch .tagline{color:var(--danger);}
+.watch b{color:var(--ink);}
+.watch code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+
+.checkpoint{
+  border:1px dashed var(--lime);border-radius:8px;padding:14px 18px;margin:20px 0 0;
+  background:var(--lime-tint);font-size:14.5px;color:var(--ink-soft);
+}
+.checkpoint .tagline{color:var(--lime);}
+.checkpoint b{color:var(--ink);}
+.checkpoint code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+.checkpoint ol{margin:8px 0 0;padding-left:20px;}
+.checkpoint li{margin-bottom:5px;}
+
+p code, li code, .prose > p code{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-size:.9em;color:var(--accent-strong);font-weight:500;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block{border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:14px 0 16px;box-shadow:var(--shadow);}
+.code-file{
+  background:var(--code-header);color:var(--code-muted);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;padding:8px 14px;display:flex;align-items:center;gap:8px;
+}
+.code-file i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.code-file i.cs{background:var(--code-accent);}
+.code-file i.xaml{background:#e8a04e;}
+.code-file i.cfg{background:var(--lime);}
+.code-file i.new{background:var(--lime);}
+.code-wrap{background:var(--code-bg);overflow-x:auto;}
+pre.code{margin:0;padding:15px 16px;font-family:"JetBrains Mono",monospace;font-size:12.6px;line-height:1.62;color:var(--code-fg);white-space:pre;tab-size:4;}
+
+/* ---------- Diagram ---------- */
+.diagram{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:14px;margin:14px 0 16px;box-shadow:var(--shadow);}
+.diagram svg{width:100%;height:auto;display:block;}
+
+.recap{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;}
+.recap th,.recap td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+.recap th{background:var(--surface-2);font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;}
+.recap-wrap{overflow-x:auto;border-radius:8px;}
+.recap td:first-child{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+.recap td.step{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;color:var(--muted);white-space:nowrap;}
+
+footer{padding:24px 0 60px;}
+footer p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ---------- Depuis PHP (pont avec ce que les étudiants connaissent) ---------- */
+.bridge{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lime);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.bridge .tagline{color:var(--lime);}
+.bridge b{color:var(--ink);}
+.bridge p code,.bridge li code{color:var(--ink);}
+.bridge ul{margin:8px 0 0;padding-left:20px;}
+.bridge li{margin-bottom:5px;}
+.bridge .code-block{margin:10px 0 0;box-shadow:none;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare .code-block{margin:0;}
+@media (max-width:700px){.compare{grid-template-columns:1fr;}}
+.code-file i.php{background:#8892bf;}
+
+/* ---------- Navigation entre sprints ---------- */
+.sprintnav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font-size:14px;}
+.sprintnav a{text-decoration:none;font-weight:600;}
+.compare pre.code{font-size:11.2px;padding:12px 12px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand"><span class="dot"></span>NoteApp · Guide TP code-behind</span>
+    <nav class="pillnav" aria-label="Navigation des parties">
+      <a href="#depart">Départ</a>
+      <a href="#etape1">Étape 1</a>
+      <a href="#etape2">Étape 2</a>
+      <a href="#etape3">Étape 3</a>
+      <a href="#bilan">Bilan</a>
+      <a href="#git">Git</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <header class="pageintro">
+    <p class="eyebrow">NoteApp · Version code-behind · Sprint 3 sur 3</p>
+    <h1>Afficher, ouvrir et supprimer les notes</h1>
+    <p class="lede">
+      Les notes s'enregistrent, mais la liste reste vide. Dans ce dernier sprint, tu lis le dossier des notes et tu
+      les affiches sous forme de cartes, tu ouvres une note d'un clic, et tu la supprimes après une confirmation.
+      L'application sera alors complète&nbsp;; il restera une question&nbsp;: comment la tester&nbsp;?
+    </p>
+    <div class="metastrip">
+      <div class="metacell"><div class="lbl">Point de départ</div><div class="val">tag sprint-02</div></div>
+      <div class="metacell"><div class="lbl">Point d'arrivée</div><div class="val">tag sprint-03</div></div>
+      <div class="metacell"><div class="lbl">Fichier créé</div><div class="val">Views/ConfirmDialog</div></div>
+      <div class="metacell"><div class="lbl">Fichiers modifiés</div><div class="val">5 fichiers</div></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <section class="part" id="depart">
+    <div class="part-head"><div class="part-num">0</div><h2>Où en est-on&nbsp;? Que va-t-on faire&nbsp;?</h2></div>
+    <div class="prose">
+      <p>
+        À la fin du sprint 2, on crée une note, Enregistrer l'écrit dans un fichier du dossier
+        <code>%LocalAppData%\WpfNotes\Notes</code>, un message le confirme, et on revient à la liste. Mais l'écran
+        de la liste ne lit pas ce dossier&nbsp;: il affiche toujours «&nbsp;Aucune note&nbsp;», et une note enregistrée
+        ne peut plus être rouverte.
+      </p>
+      <p>Pour ce sprint&nbsp;: trois étapes.</p>
+      <div class="explain">
+        <ul>
+          <li><b>Étape 1</b> — lire les notes du dossier, les afficher en cartes, et ouvrir une note d'un clic.</li>
+          <li><b>Étape 2</b> — supprimer une note, après une boîte de dialogue de confirmation.</li>
+          <li><b>Étape 3</b> — chercher comment on pourrait tester ce code, et pourquoi c'est si difficile.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape1">
+    <div class="part-head"><div class="part-num">1</div><h2>Étape 1 — La liste des notes</h2></div>
+    <p class="part-sub">ItemsControl, DataTemplate, Binding, List, foreach, tri, enum.</p>
+    <div class="prose">
+
+      <h3>1.1 — Le XAML de la liste</h3>
+      <p>Remplace tout le contenu de <code>AllNotesView.xaml</code> par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>Views/AllNotesView.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.CodeBehind.Views.AllNotesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;Grid&gt;
+        &lt;ScrollViewer VerticalScrollBarVisibility="Auto"&gt;
+            &lt;ItemsControl x:Name="NotesList" Margin="8"&gt;
+
+                &lt;!-- Comment ranger les éléments : les uns à côté des autres, avec retour à la ligne --&gt;
+                &lt;ItemsControl.ItemsPanel&gt;
+                    &lt;ItemsPanelTemplate&gt;
+                        &lt;WrapPanel /&gt;
+                    &lt;/ItemsPanelTemplate&gt;
+                &lt;/ItemsControl.ItemsPanel&gt;
+
+                &lt;!-- Comment dessiner UN élément de la liste : une carte cliquable --&gt;
+                &lt;ItemsControl.ItemTemplate&gt;
+                    &lt;DataTemplate&gt;
+                        &lt;Button
+                            Height="Auto"
+                            Margin="8"
+                            Padding="0"
+                            Click="NoteCard_Click"
+                            Style="{StaticResource MaterialDesignFlatButton}"&gt;
+                            &lt;materialDesign:Card
+                                Width="220"
+                                Height="160"
+                                Padding="16"&gt;
+                                &lt;DockPanel&gt;
+                                    &lt;TextBlock
+                                        DockPanel.Dock="Bottom"
+                                        FontSize="12"
+                                        Opacity="0.7"
+                                        Text="{Binding Date, StringFormat='dd/MM/yyyy HH:mm'}" /&gt;
+                                    &lt;TextBlock
+                                        Text="{Binding Text}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="Wrap" /&gt;
+                                &lt;/DockPanel&gt;
+                            &lt;/materialDesign:Card&gt;
+                        &lt;/Button&gt;
+                    &lt;/DataTemplate&gt;
+                &lt;/ItemsControl.ItemTemplate&gt;
+
+            &lt;/ItemsControl&gt;
+        &lt;/ScrollViewer&gt;
+
+        &lt;TextBlock
+            x:Name="EmptyText"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Opacity="0.7"
+            Text="Aucune note. Cliquez sur + pour en créer une." /&gt;
+
+        &lt;!-- Bouton flottant « Nouvelle note » --&gt;
+        &lt;Button
+            Margin="24"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Click="NewNoteButton_Click"
+            Style="{StaticResource MaterialDesignFloatingActionButton}"
+            ToolTip="Nouvelle note"&gt;
+            &lt;materialDesign:PackIcon
+                Width="24"
+                Height="24"
+                Kind="Plus" /&gt;
+        &lt;/Button&gt;
+    &lt;/Grid&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — <code>ItemsControl</code> et <code>DataTemplate</code></div>
+        Un <code>ItemsControl</code> affiche une <b>collection</b>&nbsp;: on lui donne une liste d'objets (sa propriété
+        <code>ItemsSource</code>, remplie depuis le C#), et il dessine un élément par objet. Deux réglages disent
+        comment&nbsp;:
+        <ul>
+          <li><code>ItemsPanel</code> — le panneau qui range les éléments. Un <code>WrapPanel</code> les place les uns
+            à côté des autres et passe à la ligne quand il n'y a plus de place.</li>
+          <li><code>ItemTemplate</code> — le <b>modèle</b> d'un élément, décrit dans un <code>DataTemplate</code>&nbsp;:
+            ici, un bouton qui contient une carte. Il est recopié pour chaque note de la liste.</li>
+        </ul>
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — comme un <code>@foreach</code> dans Blade</div>
+        <p>En Blade, tu écrirais&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="php"></i>Exemple en Blade</div>
+  <div class="code-wrap"><pre class="code">@foreach ($notes as $note)
+    &lt;div class="card"&gt;
+        &lt;p&gt;{{ $note-&gt;text }}&lt;/p&gt;
+        &lt;small&gt;{{ $note-&gt;date-&gt;format('d/m/Y H:i') }}&lt;/small&gt;
+    &lt;/div&gt;
+@endforeach</pre></div>
+</div>
+        <p>
+          Le <code>DataTemplate</code> joue le rôle du corps de la boucle, et <code>{Binding Text}</code> celui de
+          <code>{{ $note-&gt;text }}</code>. La différence&nbsp;: tu n'écris pas la boucle toi-même, l'<code>ItemsControl</code>
+          s'en charge.
+        </p>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — le <code>Binding</code> et le <code>DataContext</code></div>
+        Chaque carte générée reçoit sa note dans une propriété nommée <code>DataContext</code>, le «&nbsp;contexte de
+        données&nbsp;» de l'élément. <code>{Binding Text}</code> signifie «&nbsp;affiche la propriété
+        <code>Text</code> de mon <code>DataContext</code>&nbsp;». C'est ta première <b>liaison de données</b>&nbsp;: le
+        XAML lit lui-même les propriétés de l'objet, sans que tu écrives <code>MonTexte.Text = note.Text</code> pour
+        chaque carte.
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 640 272" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="La liste de notes donnée à ItemsSource produit une carte par note. Chaque carte a pour DataContext sa note, et ses Binding lisent Text et Date de cette note.">
+          <defs>
+            <marker id="s3-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" style="fill:var(--muted)" />
+            </marker>
+          </defs>
+          <text x="110" y="24" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--muted)">NotesList.ItemsSource</text>
+          <rect x="20" y="34" width="180" height="206" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="110" y="58" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="14" style="fill:var(--ink)">List&lt;Note&gt;</text>
+          <rect x="36" y="72" width="148" height="44" rx="6" style="fill:var(--surface);stroke:var(--line)" />
+          <text x="48" y="91" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink-soft)">Text = "Courses"</text>
+          <text x="48" y="107" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--muted)">Date = 10/11 14:02</text>
+          <rect x="36" y="124" width="148" height="44" rx="6" style="fill:var(--surface);stroke:var(--line)" />
+          <text x="48" y="143" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink-soft)">Text = "Idées TP"</text>
+          <text x="48" y="159" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--muted)">Date = 09/11 18:40</text>
+          <rect x="36" y="176" width="148" height="44" rx="6" style="fill:var(--surface);stroke:var(--line)" />
+          <text x="48" y="195" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink-soft)">Text = "Rappel"</text>
+          <text x="48" y="211" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--muted)">Date = 02/11 08:15</text>
+
+          <text x="460" y="24" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--muted)">une carte par note (WrapPanel)</text>
+          <rect x="300" y="34" width="150" height="96" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.2" />
+          <text x="314" y="58" font-family="Source Sans 3, sans-serif" font-size="13" style="fill:var(--ink)">Courses</text>
+          <text x="314" y="116" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">10/11/2026 14:02</text>
+          <rect x="470" y="34" width="150" height="96" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.2" />
+          <text x="484" y="58" font-family="Source Sans 3, sans-serif" font-size="13" style="fill:var(--ink)">Idées TP</text>
+          <text x="484" y="116" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">09/11/2026 18:40</text>
+          <rect x="300" y="144" width="150" height="96" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.2" />
+          <text x="314" y="168" font-family="Source Sans 3, sans-serif" font-size="13" style="fill:var(--ink)">Rappel</text>
+          <text x="314" y="226" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">02/11/2026 08:15</text>
+
+          <path d="M184 94 L296 82" fill="none" style="stroke:var(--muted)" stroke-width="1.2" marker-end="url(#s3-arrow)" />
+          <path d="M184 146 L230 137 H545 V134" fill="none" style="stroke:var(--muted)" stroke-width="1.2" marker-end="url(#s3-arrow)" />
+          <path d="M184 198 L296 192" fill="none" style="stroke:var(--muted)" stroke-width="1.2" marker-end="url(#s3-arrow)" />
+          <text x="320" y="264" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11.5" style="fill:var(--ink-soft)">chaque flèche&nbsp;: la note devient le DataContext de sa carte</text>
+        </svg>
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>ScrollViewer</code> — ajoute une barre de défilement quand les cartes dépassent la hauteur de
+            l'écran.</li>
+          <li><code>x:Name="NotesList"</code> — pour donner la liste à l'<code>ItemsControl</code> depuis le C#.</li>
+          <li><code>materialDesign:Card</code> — une carte Material Design, de taille fixe (220 × 160).</li>
+          <li><code>StringFormat='dd/MM/yyyy HH:mm'</code> — le même format de date qu'au sprint 2, appliqué par le
+            <code>Binding</code>.</li>
+          <li><code>TextTrimming="CharacterEllipsis"</code> — un texte trop long pour la carte se termine par
+            «&nbsp;…&nbsp;».</li>
+          <li>Le bouton de la carte appelle <code>NoteCard_Click</code>&nbsp;; le message «&nbsp;Aucune note&nbsp;»
+            reçoit un nom (<code>EmptyText</code>) pour qu'on puisse l'afficher ou le masquer.</li>
+        </ul>
+      </div>
+
+      <h3>1.2 — Le code-behind de la liste</h3>
+      <p>Remplace tout le contenu de <code>AllNotesView.xaml.cs</code> par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Views/AllNotesView.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using WpfNotes.CodeBehind.Models;
+
+namespace WpfNotes.CodeBehind.Views;
+
+public partial class AllNotesView : UserControl
+{
+    public AllNotesView()
+    {
+        InitializeComponent();
+        LoadNotes();
+    }
+
+    // Lit toutes les notes du dossier et les affiche
+    private void LoadNotes()
+    {
+        Directory.CreateDirectory(MainWindow.NotesFolder);
+
+        // 1. Une note par fichier .txt du dossier
+        List&lt;Note&gt; notes = new List&lt;Note&gt;();
+        string[] paths = Directory.GetFiles(MainWindow.NotesFolder, "*.txt");
+        foreach (string path in paths)
+        {
+            Note note = new Note();
+            note.Filename = Path.GetFileName(path);
+            note.Text = File.ReadAllText(path);
+            note.Date = File.GetLastWriteTime(path);
+            notes.Add(note);
+        }
+
+        // 2. La plus récente en premier
+        List&lt;Note&gt; sortedNotes = notes.OrderByDescending(note =&gt; note.Date).ToList();
+
+        // 3. Donner la liste à l'ItemsControl, qui dessine une carte par note
+        NotesList.ItemsSource = sortedNotes;
+
+        // 4. Le message « Aucune note » n'apparaît que si la liste est vide
+        if (notes.Count == 0)
+        {
+            EmptyText.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            EmptyText.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void NoteCard_Click(object sender, RoutedEventArgs e)
+    {
+        // sender est le bouton cliqué ; son DataContext est la note qu'il affiche
+        Button clickedButton = (Button)sender;
+        Note clickedNote = (Note)clickedButton.DataContext;
+
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowNote(clickedNote);
+    }
+
+    private void NewNoteButton_Click(object sender, RoutedEventArgs e)
+    {
+        Note newNote = new Note();
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowNote(newNote);
+    }
+}</pre></div>
+</div>
+      <p>Le code se lit en quatre temps, numérotés dans les commentaires de <code>LoadNotes</code>.</p>
+
+      <h3>1.3 — Lire les fichiers&nbsp;: tableau, liste et boucle</h3>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — <code>List&lt;Note&gt;</code> et <code>foreach</code></div>
+        <p>En PHP, le même code s'écrirait&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="php"></i>Exemple en PHP</div>
+  <div class="code-wrap"><pre class="code">$notes = [];
+$paths = glob($notesFolder . '/*.txt');
+foreach ($paths as $path) {
+    $note = new Note();
+    $note-&gt;filename = basename($path);
+    $note-&gt;text = file_get_contents($path);
+    $note-&gt;date = filemtime($path);
+    $notes[] = $note;
+}</pre></div>
+</div>
+        <ul>
+          <li>Un tableau PHP accepte n'importe quoi. Une <code>List&lt;Note&gt;</code> ne contient <b>que</b> des
+            objets <code>Note</code>&nbsp;: <code>&lt;Note&gt;</code> indique le type de ses éléments, et le compilateur
+            refuse d'y ajouter autre chose. <code>notes.Add(note)</code> remplace <code>$notes[] = $note</code>.</li>
+          <li><code>string[]</code> est un <b>tableau</b> de textes, de taille fixe&nbsp;: c'est ce que renvoie
+            <code>Directory.GetFiles</code>, l'équivalent de <code>glob()</code>.</li>
+          <li><code>foreach (string path in paths)</code> se lit «&nbsp;pour chaque <code>path</code> de type
+            <code>string</code> dans <code>paths</code>&nbsp;» — l'ordre est inversé par rapport à PHP, et le type de
+            la variable est indiqué.</li>
+        </ul>
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>Directory.CreateDirectory(…)</code> — si aucune note n'a encore été enregistrée, le dossier
+            n'existe pas&nbsp;: on le crée pour que la lecture ne provoque pas d'erreur.</li>
+          <li><code>Directory.GetFiles(dossier, "*.txt")</code> — les chemins complets de tous les fichiers
+            <code>.txt</code> du dossier.</li>
+          <li><code>Path.GetFileName(path)</code> — garde seulement le nom du fichier, comme <code>basename()</code>.
+            C'est ce nom que <code>NoteView</code> réutilisera pour réécrire ou supprimer le fichier.</li>
+          <li><code>File.ReadAllText(path)</code> — tout le contenu du fichier, comme <code>file_get_contents()</code>.</li>
+        </ul>
+      </div>
+
+      <h3>1.4 — Trier&nbsp;: la plus récente en premier</h3>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — comme <code>sortByDesc</code> sur une Collection Laravel</div>
+        <p>Avec une Collection Laravel, tu écrirais&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="php"></i>Exemple en PHP (Laravel)</div>
+  <div class="code-wrap"><pre class="code">$sortedNotes = collect($notes)-&gt;sortByDesc(fn ($note) =&gt; $note-&gt;date)-&gt;values();</pre></div>
+</div>
+        <p>
+          C'est presque mot pour mot la ligne C#&nbsp;:
+          <code>notes.OrderByDescending(note =&gt; note.Date).ToList()</code>. Dans les deux cas, on passe une
+          <b>fonction fléchée</b> qui dit selon quoi trier&nbsp;: <code>fn ($note) =&gt; $note-&gt;date</code> en PHP,
+          <code>note =&gt; note.Date</code> en C#. Elle se lit «&nbsp;pour une note, prendre sa date&nbsp;».
+        </p>
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>OrderByDescending</code> — trie par ordre décroissant de la valeur renvoyée par la fonction
+            fléchée, ici la date&nbsp;: la note la plus récente en premier. Ces méthodes de traitement de collections
+            s'appellent <b>LINQ</b>.</li>
+          <li><code>.ToList()</code> — range le résultat du tri dans une nouvelle liste, comme <code>-&gt;values()</code>.</li>
+          <li><code>NotesList.ItemsSource = sortedNotes;</code> — donne la liste triée à l'<code>ItemsControl</code>,
+            qui dessine aussitôt une carte par note.</li>
+        </ul>
+      </div>
+
+      <h3>1.5 — Afficher ou masquer le message «&nbsp;Aucune note&nbsp;»</h3>
+      <div class="concept">
+        <div class="tagline">Notion — l'énumération <code>Visibility</code></div>
+        Une <b>énumération</b> (<code>enum</code>) est un type dont les valeurs possibles sont fixées et nommées,
+        comme les <code>enum</code> de PHP 8.1. <code>Visibility</code> en a trois&nbsp;: <code>Visible</code>,
+        <code>Hidden</code> (invisible, mais garde sa place) et <code>Collapsed</code> (invisible, et ne prend plus de
+        place). On écrit la valeur avec le nom du type devant&nbsp;: <code>Visibility.Collapsed</code>.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>notes.Count</code> est le nombre d'éléments de la liste (le <code>count($notes)</code> de PHP). Si la
+        liste est vide, le message s'affiche&nbsp;; sinon, il est masqué.
+      </div>
+
+      <h3>1.6 — Ouvrir une note d'un clic</h3>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code — <code>NoteCard_Click</code></div>
+        <ul>
+          <li><code>sender</code> est l'objet qui a déclenché l'événement&nbsp;: le bouton de la carte cliquée. Son
+            type déclaré est <code>object</code>, le type le plus général&nbsp;: on le convertit en
+            <code>Button</code> pour pouvoir lire ses propriétés.</li>
+          <li><code>clickedButton.DataContext</code> — le contexte de données de la carte, c'est-à-dire la note
+            qu'elle affiche (voir le schéma). Lui aussi est déclaré <code>object</code>&nbsp;: on le convertit en
+            <code>Note</code>.</li>
+          <li>On transmet enfin cette note à la fenêtre, exactement comme le bouton «&nbsp;+&nbsp;» transmet une note
+            neuve.</li>
+        </ul>
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — la liste est relue à chaque retour</div>
+        <code>ShowAllNotes()</code> crée un <b>nouvel</b> écran <code>AllNotesView</code> à chaque appel, et son
+        constructeur relit le dossier. C'est ce qui rend visibles les modifications faites dans une note quand on
+        revient à la liste. Avec quelques notes, c'est instantané&nbsp;; avec des milliers, il faudrait faire
+        autrement.
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        <ol>
+          <li>Au lancement, les notes créées au sprint 2 s'affichent en cartes, la plus récente en premier.</li>
+          <li>Clique sur une carte&nbsp;: la note s'ouvre avec son texte et sa date d'enregistrement.</li>
+          <li>Modifie le texte et enregistre&nbsp;: de retour sur la liste, la carte affiche le nouveau texte, et elle
+            est passée en tête.</li>
+          <li>Rouvre-la, modifie le texte, puis clique sur Annuler&nbsp;: la carte garde le texte enregistré.</li>
+          <li>Ferme l'application, vide le dossier <code>%LocalAppData%\WpfNotes\Notes</code>, relance&nbsp;: le
+            message «&nbsp;Aucune note&nbsp;» réapparaît.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape2">
+    <div class="part-head"><div class="part-num">2</div><h2>Étape 2 — Supprimer une note après confirmation</h2></div>
+    <p class="part-sub">DialogHost, contenu de dialogue, async / await, sortie anticipée.</p>
+    <div class="prose">
+
+      <h3>2.1 — Le contenu de la boîte de dialogue</h3>
+      <p>
+        Material Design affiche ses boîtes de dialogue dans un <code>DialogHost</code>. On lui fournit le
+        <b>contenu</b> à afficher&nbsp;: un message et deux boutons. Crée un contrôle utilisateur
+        <code>Views/ConfirmDialog.xaml</code>&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>Views/ConfirmDialog.xaml — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.CodeBehind.Views.ConfirmDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"&gt;
+
+    &lt;StackPanel MinWidth="280" Margin="24"&gt;
+        &lt;TextBlock
+            x:Name="MessageText"
+            Margin="0,0,0,24"
+            FontSize="16"
+            TextWrapping="Wrap" /&gt;
+
+        &lt;StackPanel HorizontalAlignment="Right" Orientation="Horizontal"&gt;
+            &lt;!-- CommandParameter devient la valeur renvoyée par DialogHost.Show --&gt;
+            &lt;Button
+                Margin="0,0,8,0"
+                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                Content="Annuler"
+                IsCancel="True"
+                Style="{StaticResource MaterialDesignFlatButton}"&gt;
+                &lt;Button.CommandParameter&gt;
+                    &lt;sys:Boolean&gt;False&lt;/sys:Boolean&gt;
+                &lt;/Button.CommandParameter&gt;
+            &lt;/Button&gt;
+            &lt;Button
+                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                Content="Supprimer"
+                IsDefault="True"
+                Style="{StaticResource MaterialDesignFlatButton}"&gt;
+                &lt;Button.CommandParameter&gt;
+                    &lt;sys:Boolean&gt;True&lt;/sys:Boolean&gt;
+                &lt;/Button.CommandParameter&gt;
+            &lt;/Button&gt;
+        &lt;/StackPanel&gt;
+    &lt;/StackPanel&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>Views/ConfirmDialog.xaml.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using System.Windows.Controls;
+
+namespace WpfNotes.CodeBehind.Views;
+
+public partial class ConfirmDialog : UserControl
+{
+    public ConfirmDialog(string message)
+    {
+        InitializeComponent();
+        MessageText.Text = message;
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"</code> — au clic, le bouton
+            ferme la boîte de dialogue, sans code-behind.</li>
+          <li><code>CommandParameter</code> — la valeur que la boîte de dialogue <b>renvoie</b> en se fermant&nbsp;:
+            <code>False</code> pour Annuler, <code>True</code> pour Supprimer.</li>
+          <li><code>IsCancel="True"</code> et <code>IsDefault="True"</code> — la touche Échap déclenche Annuler, la
+            touche Entrée déclenche Supprimer.</li>
+          <li>Le constructeur reçoit le message à afficher, comme <code>NoteView</code> reçoit sa note.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — écrire un vrai booléen en XAML</div>
+        En XAML, <code>CommandParameter="True"</code> transmettrait le <b>texte</b> <code>"True"</code>, pas le booléen
+        <code>true</code>. Pour obtenir un vrai booléen, on écrit la balise <code>&lt;sys:Boolean&gt;</code>, qui crée
+        un objet de type <code>bool</code>. Le préfixe <code>sys</code> est déclaré en haut du fichier&nbsp;:
+        <code>xmlns:sys="clr-namespace:System;assembly=mscorlib"</code> donne accès aux types de base de .NET, ceux
+        de l'espace de noms <code>System</code>.
+      </div>
+
+      <h3>2.2 — Le <code>DialogHost</code> dans la fenêtre</h3>
+      <p>
+        Dans <code>MainWindow.xaml</code>, entoure le <code>DockPanel</code> d'un <code>DialogHost</code>. Voici le fichier
+        complet&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>MainWindow.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Window
+    x:Class="WpfNotes.CodeBehind.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    Title="WpfNotes"
+    Width="900"
+    Height="600"
+    WindowStartupLocation="CenterScreen"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{materialDesign:MaterialDesignFont}"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"&gt;
+
+    &lt;!-- Le DialogHost entoure tout le contenu : c'est lui qui affiche les boîtes de dialogue --&gt;
+    &lt;materialDesign:DialogHost Identifier="RootDialog"&gt;
+        &lt;DockPanel&gt;
+
+            &lt;!-- Barre d'application : le titre --&gt;
+            &lt;materialDesign:ColorZone
+                Padding="16"
+                DockPanel.Dock="Top"
+                Mode="PrimaryMid"&gt;
+                &lt;TextBlock FontSize="20" Text="Mes notes" /&gt;
+            &lt;/materialDesign:ColorZone&gt;
+
+            &lt;Grid&gt;
+                &lt;!-- L'écran affiché : la liste des notes ou une note --&gt;
+                &lt;ContentControl x:Name="MainContent" /&gt;
+
+                &lt;!-- Zone de notification, en bas de la fenêtre --&gt;
+                &lt;materialDesign:Snackbar
+                    x:Name="MainSnackbar"
+                    VerticalAlignment="Bottom"
+                    MessageQueue="{materialDesign:MessageQueue}" /&gt;
+            &lt;/Grid&gt;
+
+        &lt;/DockPanel&gt;
+    &lt;/materialDesign:DialogHost&gt;
+&lt;/Window&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        Le <code>DialogHost</code> entoure tout le contenu de la fenêtre&nbsp;: quand il ouvre une boîte de dialogue,
+        il assombrit tout ce qu'il contient et affiche la boîte au centre. <code>Identifier="RootDialog"</code> lui
+        donne un nom, qu'on utilisera depuis le C# pour lui demander d'ouvrir une boîte.
+      </div>
+
+      <h3>2.3 — Le bouton Supprimer</h3>
+      <p>Dans <code>NoteView.xaml</code>, ajoute le bouton Supprimer entre Annuler et Enregistrer. Voici le fichier complet&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>Views/NoteView.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.CodeBehind.Views.NoteView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;DockPanel Margin="16"&gt;
+
+        &lt;!-- En bas : les boutons d'action --&gt;
+        &lt;StackPanel
+            Margin="0,16,0,0"
+            HorizontalAlignment="Right"
+            DockPanel.Dock="Bottom"
+            Orientation="Horizontal"&gt;
+            &lt;Button
+                Margin="0,0,8,0"
+                Click="CancelButton_Click"
+                Content="Annuler"
+                Style="{StaticResource MaterialDesignFlatButton}" /&gt;
+            &lt;Button
+                x:Name="DeleteButton"
+                Margin="0,0,8,0"
+                Click="DeleteButton_Click"
+                Content="Supprimer"
+                Style="{StaticResource MaterialDesignOutlinedButton}" /&gt;
+            &lt;Button Click="SaveButton_Click" Content="Enregistrer" /&gt;
+        &lt;/StackPanel&gt;
+
+        &lt;!-- En haut : la date d'enregistrement --&gt;
+        &lt;TextBlock
+            x:Name="DateText"
+            Margin="0,0,0,8"
+            DockPanel.Dock="Top"
+            FontSize="12"
+            Opacity="0.7" /&gt;
+
+        &lt;!-- Au centre : le texte de la note --&gt;
+        &lt;TextBox
+            x:Name="NoteText"
+            VerticalContentAlignment="Top"
+            materialDesign:HintAssist.Hint="Votre note"
+            AcceptsReturn="True"
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+            TextWrapping="Wrap"
+            VerticalScrollBarVisibility="Auto" /&gt;
+    &lt;/DockPanel&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>MaterialDesignOutlinedButton</code> — un bouton seulement encadré, moins visible que le bouton plein
+        Enregistrer&nbsp;: supprimer est une action secondaire, qu'on ne veut pas déclencher par erreur. Il reçoit un
+        nom, <code>DeleteButton</code>, parce que le code-behind va l'activer ou le désactiver.
+      </div>
+
+      <h3>2.4 — La suppression dans le code-behind</h3>
+      <p>Remplace tout le contenu de <code>NoteView.xaml.cs</code> par sa version finale&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Views/NoteView.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using MaterialDesignThemes.Wpf;
+using WpfNotes.CodeBehind.Models;
+
+namespace WpfNotes.CodeBehind.Views;
+
+public partial class NoteView : UserControl
+{
+    // La note affichée par cet écran
+    private readonly Note _note;
+
+    public NoteView(Note note)
+    {
+        InitializeComponent();
+
+        _note = note;
+        NoteText.Text = _note.Text;
+        UpdateDisplay();
+    }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Revenir à la liste, sans rien enregistrer
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowAllNotes();
+    }
+
+    private void SaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        // 1. Récupérer le texte saisi
+        _note.Text = NoteText.Text;
+
+        // 2. Première sauvegarde : choisir un nom de fichier unique
+        if (_note.Filename == null)
+        {
+            _note.Filename = "note-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".txt";
+        }
+
+        // 3. Écrire le fichier sur le disque
+        Directory.CreateDirectory(MainWindow.NotesFolder);
+        string path = Path.Combine(MainWindow.NotesFolder, _note.Filename);
+        File.WriteAllText(path, _note.Text);
+        _note.Date = File.GetLastWriteTime(path);
+
+        // 4. Prévenir l'utilisateur et revenir à la liste
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowMessage("Note enregistrée");
+        mainWindow.ShowAllNotes();
+    }
+
+    private async void DeleteButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Une note jamais enregistrée n'a pas de fichier : rien à supprimer
+        if (_note.Filename == null)
+        {
+            return;
+        }
+        string filename = _note.Filename;
+
+        // 1. Demander confirmation et attendre la réponse de l'utilisateur
+        ConfirmDialog dialog = new ConfirmDialog("Supprimer cette note ?");
+        object? answer = await DialogHost.Show(dialog, "RootDialog");
+        bool confirmed = object.Equals(answer, true);
+        if (!confirmed)
+        {
+            return;
+        }
+
+        // 2. Supprimer le fichier
+        string path = Path.Combine(MainWindow.NotesFolder, filename);
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+
+        // 3. Prévenir l'utilisateur et revenir à la liste
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowMessage("Note supprimée");
+        mainWindow.ShowAllNotes();
+    }
+
+    // Affiche la date en haut de l'écran, et n'active Supprimer que pour une note déjà enregistrée
+    private void UpdateDisplay()
+    {
+        if (_note.Filename == null)
+        {
+            DateText.Text = "Nouvelle note";
+            DeleteButton.IsEnabled = false;
+        }
+        else
+        {
+            DateText.Text = "Enregistrée le " + _note.Date.ToString("dd/MM/yyyy HH:mm");
+            DeleteButton.IsEnabled = true;
+        }
+    }
+}</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — <code>async</code> et <code>await</code>&nbsp;: attendre sans bloquer</div>
+        Ouvrir la boîte de dialogue est immédiat, mais la <b>réponse</b> n'arrive que quand l'utilisateur clique, peut-être
+        dix secondes plus tard. <code>DialogHost.Show(…)</code> renvoie donc une tâche (<code>Task</code>) qui se
+        terminera à ce moment-là. <code>await</code> signifie «&nbsp;attends la fin de cette tâche, puis continue
+        ici&nbsp;». Pendant l'attente, la fenêtre reste vivante&nbsp;: elle se redessine, et les clics sont traités. Une
+        méthode qui contient <code>await</code> doit être marquée <code>async</code>.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — pourquoi ne pas simplement attendre&nbsp;?</div>
+        En PHP, une instruction qui attend (une requête SQL, un appel HTTP) bloque le script, et ce n'est pas grave&nbsp;:
+        personne ne regarde la page pendant qu'elle se construit. Dans une application de bureau, bloquer revient à
+        <b>geler la fenêtre</b>&nbsp;: plus de dessin, plus de clic… y compris sur le bouton de la boîte de dialogue
+        qu'on attend. <code>await</code> évite ce piège. Si tu as écrit du JavaScript, c'est le même
+        <code>async</code> / <code>await</code>.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code — <code>DeleteButton_Click</code></div>
+        <ul>
+          <li><code>using MaterialDesignThemes.Wpf;</code> — pour pouvoir utiliser la classe <code>DialogHost</code>.</li>
+          <li><code>if (_note.Filename == null) { return; }</code> — une <b>sortie anticipée</b>&nbsp;: sans fichier, rien
+            à supprimer, on quitte la méthode tout de suite. <code>return;</code> fonctionne comme en PHP.</li>
+          <li><code>string filename = _note.Filename;</code> — après ce test, le compilateur sait que le nom n'est pas
+            nul&nbsp;: on le range dans une variable de type <code>string</code>, qu'on utilise plus bas.</li>
+          <li><code>object? answer = await DialogHost.Show(dialog, "RootDialog");</code> — ouvre la boîte de dialogue
+            dans le <code>DialogHost</code> nommé <code>RootDialog</code>, attend la réponse, et la range dans
+            <code>answer</code>. Son type est <code>object?</code>&nbsp;: n'importe quel objet, ou <code>null</code> si la
+            boîte se ferme sans réponse.</li>
+          <li><code>object.Equals(answer, true)</code> — vrai seulement si la réponse est le booléen <code>true</code>,
+            l'équivalent de <code>$answer === true</code> en PHP. Cette méthode accepte une réponse nulle sans
+            erreur.</li>
+          <li><code>if (!confirmed) { return; }</code> — <code>!</code> signifie «&nbsp;non&nbsp;»&nbsp;: si l'utilisateur
+            n'a pas confirmé, on s'arrête là.</li>
+          <li>Ensuite seulement, le fichier est supprimé (<code>File.Delete</code>, l'équivalent de <code>unlink()</code>),
+            un message est affiché et on revient à la liste, qui ne contient plus la note.</li>
+        </ul>
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code — <code>UpdateDisplay</code></div>
+        La méthode règle maintenant aussi le bouton Supprimer, à l'ouverture de l'écran&nbsp;: grisé pour une note
+        neuve, qui n'a pas encore de fichier, actif pour une note déjà enregistrée. <code>IsEnabled</code> est la
+        propriété qui active ou désactive un contrôle. Pas besoin de la mettre à jour après un enregistrement&nbsp;: on
+        revient aussitôt à la liste.
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — <code>async void</code>, seulement pour les événements</div>
+        Une méthode <code>async</code> renvoie normalement une <code>Task</code>, que l'appelant peut attendre.
+        <code>async void</code> est réservé aux gestionnaires d'événements comme <code>DeleteButton_Click</code>, parce
+        que WPF impose leur signature&nbsp;: ils doivent renvoyer <code>void</code>. Ailleurs, écris
+        <code>async Task</code>.
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        <ol>
+          <li>Clique sur «&nbsp;+&nbsp;»&nbsp;: le bouton Supprimer est grisé. Clique sur Annuler.</li>
+          <li>Ouvre une note existante&nbsp;: Supprimer est actif. Clique dessus&nbsp;: la fenêtre s'assombrit et la
+            boîte de confirmation apparaît.</li>
+          <li>Dans la boîte de dialogue, clique sur Annuler (ou appuie sur Échap)&nbsp;: rien n'est supprimé, la note reste affichée.</li>
+          <li>Clique à nouveau sur Supprimer, puis confirme&nbsp;: «&nbsp;Note supprimée&nbsp;» s'affiche, tu reviens à la
+            liste, et la carte a disparu. Le fichier n'est plus dans le dossier des notes.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape3">
+    <div class="part-head"><div class="part-num">3</div><h2>Étape 3 — Et si on voulait tester ce code&nbsp;?</h2></div>
+    <p class="part-sub">Test unitaire, et ce qui l'empêche ici.</p>
+    <div class="prose">
+      <p>
+        L'application fonctionne. Mais à chaque modification, il faut tout revérifier à la main&nbsp;: créer une note,
+        l'enregistrer, la rouvrir, la supprimer… Un <b>test unitaire</b> ferait ces vérifications automatiquement, en
+        quelques millisecondes.
+      </p>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — comme un test PHPUnit</div>
+        <p>Dans un projet Laravel, tu écrirais par exemple&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="php"></i>Exemple en PHP (Laravel)</div>
+  <div class="code-wrap"><pre class="code">public function test_annuler_ne_supprime_pas_la_note(): void
+{
+    Storage::fake('notes');                  // un faux disque, en mémoire
+    Storage::disk('notes')-&gt;put('note-1.txt', 'À garder');
+
+    // ... appeler le code qui supprime, en simulant la réponse « Annuler »
+
+    Storage::disk('notes')-&gt;assertExists('note-1.txt');
+}</pre></div>
+</div>
+        <p>
+          Le test ne touche ni au vrai disque, ni à une vraie personne qui clique&nbsp;: Laravel permet de
+          <b>remplacer</b> le disque par un faux, et le test vérifie le résultat avec <code>assertExists</code>.
+        </p>
+      </div>
+
+      <h3>3.1 — À toi&nbsp;: le test impossible</h3>
+      <p>
+        On voudrait le même test pour NoteApp&nbsp;: «&nbsp;quand l'utilisateur répond Annuler, aucun fichier n'est
+        supprimé&nbsp;». Relis <code>DeleteButton_Click</code> et dresse la liste de tout ce qu'il faudrait mettre en
+        place pour l'exécuter dans un test, sans fenêtre et sans personne devant l'écran.
+      </p>
+      <div class="checkpoint">
+        <div class="tagline">À faire avant de lire la suite</div>
+        Note chaque obstacle que tu trouves, et pour chacun, la ligne de code qui le provoque. Il y en a au moins
+        cinq.
+      </div>
+
+      <h3>3.2 — Les obstacles</h3>
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Ligne en cause</th><th>Ce qui empêche le test</th></tr></thead>
+          <tbody>
+            <tr><td>InitializeComponent()</td><td>Créer un <code>NoteView</code> construit de vrais objets WPF&nbsp;: il faut l'environnement graphique de Windows, même pour un test.</td></tr>
+            <tr><td>private … DeleteButton_Click</td><td>La logique est dans un gestionnaire de clic privé&nbsp;: pour l'exécuter, il faudrait simuler un clic sur le bouton.</td></tr>
+            <tr><td>DialogHost.Show(…)</td><td>La boîte de dialogue attend un vrai clic. Impossible de lui faire répondre «&nbsp;Annuler&nbsp;» automatiquement.</td></tr>
+            <tr><td>File.Delete(path)</td><td>Le code écrit dans le vrai dossier des notes&nbsp;: un test risquerait d'effacer tes vraies notes.</td></tr>
+            <tr><td>Window.GetWindow(this)</td><td>L'écran doit se trouver dans une vraie <code>MainWindow</code>, sinon la conversion échoue.</td></tr>
+            <tr><td>new ConfirmDialog(…)</td><td>L'écran crée lui-même ce dont il a besoin&nbsp;: on ne peut pas lui fournir une version de test.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Tous ces obstacles ont la même cause&nbsp;: la <b>logique</b> (décider de supprimer, choisir le fichier) est
+        mélangée avec l'<b>interface</b> (le clic, la boîte de dialogue, la fenêtre) et avec le <b>disque</b>.
+      </p>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — la solution, tu la connais déjà</div>
+        Dans Laravel, on évite de tout écrire dans le contrôleur&nbsp;: on range la logique dans des classes de
+        service, qu'on reçoit dans le constructeur, et qu'un test peut remplacer par des faux. C'est exactement ce que
+        fait le patron <b>MVVM</b>&nbsp;: la logique part dans des <em>ViewModels</em> sans aucun lien avec WPF, le
+        disque et la boîte de dialogue se cachent derrière des interfaces, et l'injection de dépendances assemble le
+        tout. C'est l'objet de la version suivante de NoteApp.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="bilan">
+    <div class="part-head"><div class="part-num">4</div><h2>Bilan des notions vues</h2></div>
+    <div class="prose">
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Notion</th><th>Étape</th><th>Rôle dans le TP</th></tr></thead>
+          <tbody>
+            <tr><td>ItemsControl</td><td class="step">1</td><td>Afficher une collection, un élément par objet.</td></tr>
+            <tr><td>DataTemplate</td><td class="step">1</td><td>Le modèle d'un élément, recopié pour chaque note.</td></tr>
+            <tr><td>Binding / DataContext</td><td class="step">1</td><td>Le XAML lit lui-même les propriétés de l'objet affiché.</td></tr>
+            <tr><td>List&lt;T&gt; et tableau</td><td class="step">1</td><td>Des collections typées&nbsp;: <code>List&lt;Note&gt;</code>, <code>string[]</code>.</td></tr>
+            <tr><td>foreach</td><td class="step">1</td><td>Parcourir une collection, avec le type de la variable.</td></tr>
+            <tr><td>LINQ et fonction fléchée</td><td class="step">1</td><td><code>OrderByDescending(note =&gt; note.Date)</code>, comme <code>sortByDesc</code>.</td></tr>
+            <tr><td>enum</td><td class="step">1</td><td><code>Visibility.Visible</code> / <code>Collapsed</code>&nbsp;: des valeurs fixées et nommées.</td></tr>
+            <tr><td>DialogHost</td><td class="step">2</td><td>Afficher une boîte de dialogue Material Design et récupérer la réponse.</td></tr>
+            <tr><td>async / await</td><td class="step">2</td><td>Attendre une réponse sans geler la fenêtre.</td></tr>
+            <tr><td>object / object?</td><td class="step">2</td><td>Le type le plus général, éventuellement nul.</td></tr>
+            <tr><td>Sortie anticipée</td><td class="step">2</td><td><code>return;</code> dès qu'il n'y a plus rien à faire.</td></tr>
+            <tr><td>Test unitaire</td><td class="step">3</td><td>Une vérification automatique&nbsp;; impossible quand la logique vit dans la vue.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="git">
+    <div class="part-head"><div class="part-num">5</div><h2>Fin de sprint&nbsp;: commit &amp; tag</h2></div>
+    <div class="prose">
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine du dépôt</div>
+  <div class="code-wrap"><pre class="code">git add .
+git commit -m "Sprint 3 : liste des notes, ouverture et suppression avec confirmation"
+git tag sprint-03
+git push
+git push --tags</pre></div>
+</div>
+      <p>
+        Le dépôt de référence <code>NoteApp</code> contient ce même état au tag <code>sprint-03</code> de la branche
+        <code>codeBehind</code>. La branche <code>main</code> contient la version MVVM, avec ses tests unitaires.
+      </p>
+      <p class="sprintnav"><a href="../sprint-02/guide-sprint-02.html">← Sprint 2 — Créer et enregistrer une note</a><span>Suite&nbsp;: la version MVVM, branche <code>main</code></span></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>NoteApp · Version code-behind — Guide TP sprint 3, afficher, ouvrir et supprimer les notes</p>
+  </footer>
+
+</div>

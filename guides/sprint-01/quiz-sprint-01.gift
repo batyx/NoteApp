@@ -1,0 +1,64 @@
+// NoteApp/Sprint 1 - Projet et navigation : quiz de validation (10 questions, QCM à réponse unique, sans pénalité)
+// Import Moodle : Banque de questions > Importer > format GIFT, encodage UTF-8
+
+$CATEGORY: NoteApp/Sprint 1 - Projet et navigation
+
+::S1-01 [facile]:: [plain]En C\#, comment déclare-t-on une variable locale greeter qui contient un nouvel objet Greeter ? {
+~$greeter \= new Greeter(); #C'est la syntaxe PHP \: en C\#, pas de $, et le type de la variable s'écrit devant son nom.
+=Greeter greeter \= new Greeter(); #Exact \: le type (Greeter) précède le nom de la variable (greeter), sans $.
+~greeter\: Greeter \= new Greeter(); #Le type ne se place pas après le nom en C\# \: il s'écrit devant.
+}
+
+::S1-02 [facile]:: [plain]Que signifie la ligne public partial class MainWindow \: Window ? {
+=MainWindow hérite de Window \: le « \: » joue le rôle de extends en PHP. #Exact \: MainWindow est une Window et hérite de tout son comportement (s'ouvrir, se fermer, avoir un titre…).
+~MainWindow possède un champ privé de type Window, nommé Window. #Un champ se déclare dans le corps de la classe ; le « \: » après le nom indique l'héritage.
+~MainWindow est une copie de la classe Window, renommée pour le projet. #Il n'y a pas de copie \: MainWindow hérite de Window et y ajoute ses propres membres.
+}
+
+::S1-03 [facile]:: [plain]À quel outil PHP correspond NuGet ? {
+~À PHPUnit, puisqu'il sert à exécuter les tests du projet. #Non \: NuGet ne lance pas de tests, il installe des bibliothèques.
+~À Artisan, la ligne de commande qui génère les fichiers du projet. #Non \: c'est Visual Studio qui génère les fichiers du projet. NuGet gère les dépendances.
+=À Composer \: il télécharge les paquets et les ajoute au projet. #Exact \: nuget.org joue le rôle de Packagist, et le .csproj celui de composer.json.
+}
+
+::S1-04 [facile]:: [plain]Dans MainWindow.xaml, que permet l'attribut x\:Name\="MainContent" du ContentControl ? {
+~D'afficher le texte « MainContent » dans la zone d'écran. #Le contenu affiché vient de la propriété Content, pas de x\:Name, qui est un identifiant.
+=D'utiliser la zone depuis le code-behind, comme un champ nommé MainContent. #Exact \: ShowAllNotes peut alors écrire MainContent.Content \= new AllNotesView();
+~D'appliquer à la zone le style Material Design du même nom. #Le style se choisit avec l'attribut Style, pas avec x\:Name.
+}
+
+::S1-05 [moyen]:: [plain]Dans NoteView.xaml, le bouton contient Click\="CancelButton_Click", mais la méthode du code-behind s'appelle Cancelbutton_Click. Que se passe-t-il ? {
+~L'application se lance, mais le clic sur le bouton ne fait rien. #Non \: l'erreur est détectée dès la compilation, l'application ne se lance pas.
+~Rien de particulier \: WPF ignore les majuscules quand il cherche la méthode. #Non \: le nom doit être identique, majuscules comprises.
+=La compilation échoue \: NoteView ne contient pas de méthode nommée CancelButton_Click. #Exact \: le nom écrit dans Click doit correspondre exactement à une méthode du code-behind.
+}
+
+::S1-06 [moyen]:: [plain]Pourquoi la classe MainWindow est-elle déclarée partial ? {
+=Parce qu'elle est écrite en deux morceaux \: le XAML compilé et le code-behind. #Exact \: Visual Studio transforme le XAML en un fichier C\# caché, qui forme une seule classe avec MainWindow.xaml.cs.
+~Parce qu'elle n'est utilisable qu'en partie depuis les autres classes du projet. #Ce sont public et private qui règlent l'accès, pas partial.
+~Parce qu'elle hérite de Window, et que toute classe fille doit être partial. #L'héritage n'impose pas partial \: c'est la présence du XAML qui l'exige.
+}
+
+::S1-07 [moyen]:: [plain]Quelle est la différence entre une Window et un UserControl ? {
+~Un UserControl ne peut pas avoir de code-behind, seulement du XAML. #Faux \: NoteView et AllNotesView ont chacun leur fichier .xaml.cs.
+=Un UserControl est un morceau d'écran, placé à l'intérieur d'une fenêtre. #Exact \: nos deux écrans sont des UserControl, affichés tour à tour dans la zone MainContent de la fenêtre.
+~Une Window ne peut contenir qu'un seul contrôle, alors qu'un UserControl peut en contenir plusieurs. #Les deux peuvent contenir un panneau, qui contient lui-même autant de contrôles qu'on veut.
+}
+
+::S1-08 [moyen]:: [plain]Dans NoteApp, comment passe-t-on de la liste à l'écran d'une note ? {
+~On ouvre une seconde fenêtre avec Show(), par-dessus la première. #Non \: l'application n'a qu'une fenêtre ; seul son contenu change.
+~On modifie StartupUri dans App.xaml pour pointer vers NoteView. #StartupUri n'agit qu'au démarrage de l'application.
+=On place un nouvel objet NoteView dans MainContent.Content. #Exact \: ShowNote() écrit MainContent.Content \= new NoteView(); et l'écran précédent est remplacé.
+}
+
+::S1-09 [difficile]:: [plain]Pourquoi écrit-on (MainWindow)Window.GetWindow(this) dans AllNotesView ? {
+~Pour créer une nouvelle MainWindow à partir de l'écran courant. #Aucune fenêtre n'est créée \: GetWindow retrouve la fenêtre qui contient déjà l'écran.
+=Parce que GetWindow renvoie une Window, et que ShowNote n'existe que dans MainWindow. #Exact \: la conversion (MainWindow) dit au compilateur que cette fenêtre est bien notre MainWindow, ce qui permet d'appeler ShowNote.
+~Parce qu'une méthode statique doit toujours être suivie d'une conversion de type. #Rien n'impose de conversion après une méthode statique \: ici, elle est utile parce que le type renvoyé est trop général.
+}
+
+::S1-10 [difficile]:: [plain]Un Grid sans RowDefinitions ni ColumnDefinitions contient un TextBlock puis un Button. Comment sont-ils placés ? {
+=Dans la même cellule, superposés, le bouton par-dessus le texte. #Exact \: c'est ainsi que le bouton « + » flotte au-dessus de l'écran, aligné en bas à droite.
+~L'un sous l'autre, comme dans un StackPanel vertical. #C'est le comportement d'un StackPanel, pas d'un Grid à une seule cellule.
+~Ils ne s'affichent pas \: un Grid exige au moins une ligne et une colonne. #Sans définition, le Grid a une seule cellule, qui occupe tout l'espace.
+}

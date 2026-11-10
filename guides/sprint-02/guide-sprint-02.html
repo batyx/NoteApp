@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteApp — Sprint 2, créer et enregistrer une note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+:root{
+  --bg:#f5f3fa;
+  --surface:#ffffff;
+  --surface-2:#efebf8;
+  --ink:#211b34;
+  --ink-soft:#4a4360;
+  --muted:#726b8c;
+  --accent:#4c2d84;
+  --accent-strong:#341f5c;
+  --accent-tint:#eae3f8;
+  --lime:#5c8a29;
+  --lime-tint:#e9f3da;
+  --line:#e1dbf0;
+  --code-bg:#1e1b2b;
+  --code-header:#171420;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#9b7ee8;
+  --danger:#a6192e;
+  --danger-tint:#fbe7ea;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(33,27,52,.06), 0 8px 24px -12px rgba(33,27,52,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121f;
+    --surface:#1c1830;
+    --surface-2:#241f3d;
+    --ink:#efe9fb;
+    --ink-soft:#cabfe6;
+    --muted:#9186ad;
+    --accent:#b394f0;
+    --accent-strong:#d6c2ff;
+    --accent-tint:#2c2350;
+    --lime:#a5d66b;
+    --lime-tint:#26301c;
+    --line:#332a52;
+    --code-bg:#100e1a;
+    --code-header:#0b0a13;
+    --code-fg:#e8e3f5;
+    --code-muted:#8b83a8;
+    --code-accent:#b394f0;
+    --danger:#ff8fa3;
+    --danger-tint:#3a1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121f;
+  --surface:#1c1830;
+  --surface-2:#241f3d;
+  --ink:#efe9fb;
+  --ink-soft:#cabfe6;
+  --muted:#9186ad;
+  --accent:#b394f0;
+  --accent-strong:#d6c2ff;
+  --accent-tint:#2c2350;
+  --lime:#a5d66b;
+  --lime-tint:#26301c;
+  --line:#332a52;
+  --code-bg:#100e1a;
+  --code-header:#0b0a13;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#b394f0;
+  --danger:#ff8fa3;
+  --danger-tint:#3a1b23;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.62;
+}
+h1,h2,h3,h4{
+  font-family:"Barlow Semi Condensed","Segoe UI",sans-serif;
+  font-weight:700;color:var(--ink);text-wrap:balance;margin:0;
+}
+code, pre, .mono{font-family:"JetBrains Mono",Consolas,monospace;}
+::selection{background:var(--accent-tint);}
+a{color:var(--accent);}
+p{margin:0 0 14px;}
+p:last-child{margin-bottom:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:840px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14.5px;
+  letter-spacing:.02em;white-space:nowrap;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+.pillnav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.pillnav::-webkit-scrollbar{display:none;}
+.pillnav a{
+  flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:6px 9px;border-radius:999px;border:1px solid transparent;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.pillnav a:hover{background:var(--surface-2);color:var(--ink);}
+
+.container{max-width:840px;margin:0 auto;padding:0 24px;}
+.prose{max-width:680px;}
+
+/* ---------- Header ---------- */
+.pageintro{padding:44px 0 8px;}
+.eyebrow{
+  font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px;
+}
+.pageintro h1{font-size:clamp(27px,4vw,38px);line-height:1.08;max-width:22ch;margin-bottom:14px;}
+.pageintro p.lede{max-width:62ch;color:var(--ink-soft);font-size:16.5px;}
+
+.metastrip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;margin:28px 0 40px;
+}
+.metacell{background:var(--surface);padding:13px 16px;}
+.metacell .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.metacell .val{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);}
+@media (max-width:640px){.metastrip{grid-template-columns:1fr 1fr;}}
+
+/* ---------- Part sections ---------- */
+.part{scroll-margin-top:64px;padding:6px 0 46px;border-bottom:1px solid var(--line);}
+.part:last-of-type{border-bottom:none;}
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.part-num{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;
+  color:var(--surface);background:var(--accent);
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.part-head h2{font-size:23px;}
+.part-sub{margin:0 0 18px 44px;color:var(--muted);font-size:14.5px;}
+.part > .prose > h3{font-size:16.5px;margin:28px 0 10px;color:var(--ink);}
+.part > .prose > h3:first-child{margin-top:0;}
+
+/* ---------- Recurring blocks ---------- */
+.tagline{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 0;margin-bottom:8px;
+}
+.concept{
+  background:var(--accent-tint);border-radius:0 8px 8px 0;border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.concept .tagline{color:var(--accent-strong);}
+.concept b{color:var(--ink);}
+
+.explain{
+  background:var(--surface-2);border-radius:8px;padding:14px 18px;margin:0 0 16px;
+  font-size:14.5px;color:var(--ink-soft);
+}
+.explain .tagline{color:var(--muted);}
+.explain code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.92em;color:var(--ink);}
+.explain b{color:var(--ink);}
+.explain ul,.explain ol{margin:8px 0 0;padding-left:20px;}
+.explain li{margin-bottom:6px;}
+.explain li:last-child{margin-bottom:0;}
+
+.watch{
+  border-left:3px solid var(--danger);background:var(--danger-tint);border-radius:0 8px 8px 0;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-soft);
+}
+.watch .tagline{color:var(--danger);}
+.watch b{color:var(--ink);}
+.watch code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+
+.checkpoint{
+  border:1px dashed var(--lime);border-radius:8px;padding:14px 18px;margin:20px 0 0;
+  background:var(--lime-tint);font-size:14.5px;color:var(--ink-soft);
+}
+.checkpoint .tagline{color:var(--lime);}
+.checkpoint b{color:var(--ink);}
+.checkpoint code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+.checkpoint ol{margin:8px 0 0;padding-left:20px;}
+.checkpoint li{margin-bottom:5px;}
+
+p code, li code, .prose > p code{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-size:.9em;color:var(--accent-strong);font-weight:500;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block{border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:14px 0 16px;box-shadow:var(--shadow);}
+.code-file{
+  background:var(--code-header);color:var(--code-muted);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;padding:8px 14px;display:flex;align-items:center;gap:8px;
+}
+.code-file i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.code-file i.cs{background:var(--code-accent);}
+.code-file i.xaml{background:#e8a04e;}
+.code-file i.cfg{background:var(--lime);}
+.code-file i.new{background:var(--lime);}
+.code-wrap{background:var(--code-bg);overflow-x:auto;}
+pre.code{margin:0;padding:15px 16px;font-family:"JetBrains Mono",monospace;font-size:12.6px;line-height:1.62;color:var(--code-fg);white-space:pre;tab-size:4;}
+
+/* ---------- Diagram ---------- */
+.diagram{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:14px;margin:14px 0 16px;box-shadow:var(--shadow);}
+.diagram svg{width:100%;height:auto;display:block;}
+
+.recap{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;}
+.recap th,.recap td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+.recap th{background:var(--surface-2);font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;}
+.recap-wrap{overflow-x:auto;border-radius:8px;}
+.recap td:first-child{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+.recap td.step{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;color:var(--muted);white-space:nowrap;}
+
+footer{padding:24px 0 60px;}
+footer p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ---------- Depuis PHP (pont avec ce que les étudiants connaissent) ---------- */
+.bridge{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lime);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.bridge .tagline{color:var(--lime);}
+.bridge b{color:var(--ink);}
+.bridge p code,.bridge li code{color:var(--ink);}
+.bridge ul{margin:8px 0 0;padding-left:20px;}
+.bridge li{margin-bottom:5px;}
+.bridge .code-block{margin:10px 0 0;box-shadow:none;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare .code-block{margin:0;}
+@media (max-width:700px){.compare{grid-template-columns:1fr;}}
+.code-file i.php{background:#8892bf;}
+
+/* ---------- Navigation entre sprints ---------- */
+.sprintnav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font-size:14px;}
+.sprintnav a{text-decoration:none;font-weight:600;}
+.compare pre.code{font-size:11.2px;padding:12px 12px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand"><span class="dot"></span>NoteApp · Guide TP code-behind</span>
+    <nav class="pillnav" aria-label="Navigation des parties">
+      <a href="#depart">Départ</a>
+      <a href="#etape1">Étape 1</a>
+      <a href="#etape2">Étape 2</a>
+      <a href="#etape3">Étape 3</a>
+      <a href="#etape4">Étape 4</a>
+      <a href="#bilan">Bilan</a>
+      <a href="#git">Git</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <header class="pageintro">
+    <p class="eyebrow">NoteApp · Version code-behind · Sprint 2 sur 3</p>
+    <h1>Créer et enregistrer une note</h1>
+    <p class="lede">
+      L'écran d'une note existe, mais tout ce qu'on y tape disparaît. Dans ce sprint, tu écris la classe
+      <code>Note</code>, tu la transmets à l'écran qui l'affiche, puis tu enregistres son texte dans un fichier.
+      Un message en bas de la fenêtre confirmera chaque enregistrement.
+    </p>
+    <div class="metastrip">
+      <div class="metacell"><div class="lbl">Point de départ</div><div class="val">tag sprint-01</div></div>
+      <div class="metacell"><div class="lbl">Point d'arrivée</div><div class="val">tag sprint-02</div></div>
+      <div class="metacell"><div class="lbl">Fichier créé</div><div class="val">Models/Note.cs</div></div>
+      <div class="metacell"><div class="lbl">Fichiers modifiés</div><div class="val">4 fichiers</div></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <section class="part" id="depart">
+    <div class="part-head"><div class="part-num">0</div><h2>Où en est-on&nbsp;? Que va-t-on faire&nbsp;?</h2></div>
+    <div class="prose">
+      <p>
+        À la fin du sprint 1, la fenêtre principale affiche tour à tour deux écrans&nbsp;: la liste
+        (<code>AllNotesView</code>, encore vide) et une note (<code>NoteView</code>, un champ de saisie et un bouton
+        Annuler). On passe de l'un à l'autre avec le bouton «&nbsp;+&nbsp;» et le bouton Annuler. Mais aucune donnée
+        n'existe&nbsp;: le texte tapé est perdu dès qu'on quitte l'écran.
+      </p>
+      <p>Pour ce sprint&nbsp;: quatre étapes, chacune vérifiable avant de passer à la suivante.</p>
+      <div class="explain">
+        <ul>
+          <li><b>Étape 1</b> — écrire la classe <code>Note</code>, qui représente une note.</li>
+          <li><b>Étape 2</b> — transmettre une note à l'écran <code>NoteView</code>, qui l'affiche.</li>
+          <li><b>Étape 3</b> — enregistrer la note dans un fichier texte, puis revenir à la liste.</li>
+          <li><b>Étape 4</b> — confirmer l'enregistrement par un message en bas de la fenêtre.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape1">
+    <div class="part-head"><div class="part-num">1</div><h2>Étape 1 — La classe <code>Note</code></h2></div>
+    <p class="part-sub">Propriétés, valeur par défaut, type nullable, DateTime.</p>
+    <div class="prose">
+      <p>
+        Une note a un texte, une date d'enregistrement, et un nom de fichier sur le disque. Ces trois informations
+        forment une petite classe, sans aucune logique&nbsp;: on la range dans un dossier <code>Models</code>.
+      </p>
+      <div class="explain">
+        <div class="tagline">Étapes dans Visual Studio</div>
+        <ol>
+          <li>Clic droit sur le projet → Ajouter → Nouveau dossier → <code>Models</code>.</li>
+          <li>Clic droit sur <code>Models</code> → Ajouter → Classe… → nomme-la <code>Note.cs</code>.</li>
+        </ol>
+      </div>
+      <p>Remplace son contenu par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>Models/Note.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">namespace WpfNotes.CodeBehind.Models;
+
+public class Note
+{
+    // Nom du fichier sur le disque. Vaut null tant que la note n'a jamais été enregistrée.
+    public string? Filename { get; set; }
+
+    // Le texte de la note
+    public string Text { get; set; } = "";
+
+    // Date du dernier enregistrement
+    public DateTime Date { get; set; }
+}</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — une propriété C#</div>
+        <p>En PHP 8, tu écrirais une propriété publique typée&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="php"></i>Exemple en PHP</div>
+  <div class="code-wrap"><pre class="code">class Note
+{
+    public ?string $filename = null;
+    public string $text = "";
+    public DateTime $date;
+}</pre></div>
+</div>
+        <p>
+          En C#, <code>public string Text { get; set; }</code> déclare une <b>propriété</b>&nbsp;: on la lit et on
+          l'écrit comme un champ (<code>note.Text = "Bonjour";</code>), mais <code>get</code> et <code>set</code>
+          indiquent qu'elle est accessible en lecture et en écriture. C'est la façon habituelle d'exposer une donnée
+          en C#&nbsp;: on pourra plus tard ajouter du code dans <code>get</code> ou <code>set</code> sans changer
+          ceux qui l'utilisent.
+        </p>
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>namespace WpfNotes.CodeBehind.Models;</code> — le dossier <code>Models</code> donne son nom à
+            l'espace de noms, comme pour <code>Views</code>.</li>
+          <li><code>= "";</code> — la valeur par défaut&nbsp;: une note neuve a un texte vide.</li>
+          <li><code>DateTime</code> — le type .NET pour une date et une heure, l'équivalent de la classe
+            <code>DateTime</code> de PHP (ou de Carbon dans Laravel).</li>
+          <li>Les lignes <code>//</code> sont des commentaires, comme en PHP.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — <code>string?</code>, une valeur qui peut être nulle</div>
+        Le projet active la vérification du <i>null</i> (<code>Nullable</code> dans le <code>.csproj</code>, vu au
+        sprint 1). Un <code>string</code> ne peut donc jamais valoir <code>null</code>&nbsp;; un <code>string?</code>
+        le peut. On choisit <code>string?</code> pour <code>Filename</code>, parce qu'une note jamais enregistrée n'a
+        pas encore de fichier. C'est exactement le <code>?string</code> de PHP, avec le point d'interrogation après le
+        type. Le compilateur te préviendra si tu utilises <code>Filename</code> sans vérifier qu'il n'est pas nul.
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — une <code>DateTime</code> n'est jamais nulle</div>
+        Une <code>DateTime</code> non initialisée vaut le 1<sup>er</sup> janvier de l'an 1. Pour savoir si une note a
+        déjà été enregistrée, on ne regarde donc pas sa date mais son nom de fichier&nbsp;: <code>Filename == null</code>.
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        L'application se lance et se comporte exactement comme à la fin du sprint 1&nbsp;: la classe <code>Note</code>
+        existe, mais personne ne l'utilise encore.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape2">
+    <div class="part-head"><div class="part-num">2</div><h2>Étape 2 — Transmettre une note à l'écran</h2></div>
+    <p class="part-sub">Constructeur avec paramètre, champ readonly, références, if / else.</p>
+    <div class="prose">
+      <p>
+        L'écran <code>NoteView</code> va maintenant afficher <b>une note précise</b>. Il la reçoit dans son
+        constructeur et la garde dans un champ. Le bouton «&nbsp;+&nbsp;» lui transmettra une note neuve&nbsp;; au
+        sprint 3, un clic sur une carte lui transmettra une note existante.
+      </p>
+
+      <h3>2.1 — Le XAML de l'écran</h3>
+      <p>Remplace tout le contenu de <code>NoteView.xaml</code> par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>Views/NoteView.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.CodeBehind.Views.NoteView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;DockPanel Margin="16"&gt;
+
+        &lt;!-- En bas : les boutons d'action --&gt;
+        &lt;StackPanel
+            Margin="0,16,0,0"
+            HorizontalAlignment="Right"
+            DockPanel.Dock="Bottom"
+            Orientation="Horizontal"&gt;
+            &lt;Button
+                Margin="0,0,8,0"
+                Click="CancelButton_Click"
+                Content="Annuler"
+                Style="{StaticResource MaterialDesignFlatButton}" /&gt;
+            &lt;Button Click="SaveButton_Click" Content="Enregistrer" /&gt;
+        &lt;/StackPanel&gt;
+
+        &lt;!-- En haut : la date d'enregistrement --&gt;
+        &lt;TextBlock
+            x:Name="DateText"
+            Margin="0,0,0,8"
+            DockPanel.Dock="Top"
+            FontSize="12"
+            Opacity="0.7" /&gt;
+
+        &lt;!-- Au centre : le texte de la note --&gt;
+        &lt;TextBox
+            x:Name="NoteText"
+            VerticalContentAlignment="Top"
+            materialDesign:HintAssist.Hint="Votre note"
+            AcceptsReturn="True"
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+            TextWrapping="Wrap"
+            VerticalScrollBarVisibility="Auto" /&gt;
+    &lt;/DockPanel&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li>Le <code>DockPanel</code> range maintenant trois enfants&nbsp;: les boutons en bas
+            (<code>Dock="Bottom"</code>), la date en haut (<code>Dock="Top"</code>), et le champ de saisie, qui
+            occupe tout l'espace restant parce qu'il est le dernier enfant.</li>
+          <li>Le bouton Enregistrer rejoint Annuler dans le <code>StackPanel</code>. <code>Margin="0,0,8,0"</code>
+            sur Annuler laisse 8 pixels à sa droite (l'ordre est gauche, haut, droite, bas)&nbsp;; Supprimer arrivera
+            au sprint 3.</li>
+          <li>Le bouton Enregistrer n'a pas de <code>Style</code>&nbsp;: il prend le style par défaut du thème
+            Material Design 3, un bouton plein aux couleurs principales. C'est l'action principale de
+            l'écran.</li>
+          <li><code>x:Name="DateText"</code> — un texte qu'on remplira depuis le C#.</li>
+        </ul>
+      </div>
+
+      <h3>2.2 — Le code-behind de l'écran</h3>
+      <p>Remplace tout le contenu de <code>NoteView.xaml.cs</code> par cette version, dont la méthode d'enregistrement est encore vide&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Views/NoteView.xaml.cs — version de l'étape 2</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using System.Windows.Controls;
+using WpfNotes.CodeBehind.Models;
+
+namespace WpfNotes.CodeBehind.Views;
+
+public partial class NoteView : UserControl
+{
+    // La note affichée par cet écran
+    private readonly Note _note;
+
+    public NoteView(Note note)
+    {
+        InitializeComponent();
+
+        _note = note;
+        NoteText.Text = _note.Text;
+        UpdateDisplay();
+    }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Revenir à la liste, sans rien enregistrer
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowAllNotes();
+    }
+
+    private void SaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Rempli à l'étape 3
+    }
+
+    // Affiche la date en haut de l'écran
+    private void UpdateDisplay()
+    {
+        if (_note.Filename == null)
+        {
+            DateText.Text = "Nouvelle note";
+        }
+        else
+        {
+            DateText.Text = "Enregistrée le " + _note.Date.ToString("dd/MM/yyyy HH:mm");
+        }
+    }
+}</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — un champ readonly initialisé dans le constructeur</div>
+        <p>En PHP 8.1, tu écrirais&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="php"></i>Exemple en PHP</div>
+  <div class="code-wrap"><pre class="code">class NoteView
+{
+    private readonly Note $note;
+
+    public function __construct(Note $note)
+    {
+        $this-&gt;note = $note;
+    }
+}</pre></div>
+</div>
+        <p>
+          C'est le même principe en C#&nbsp;: <code>private readonly Note _note;</code> déclare un champ privé de type
+          <code>Note</code>, qu'on ne peut affecter que dans le constructeur. Ensuite, impossible de le faire pointer
+          vers une autre note par erreur. On peut en revanche modifier les propriétés de la note elle-même
+          (<code>_note.Text = …</code>).
+        </p>
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>public NoteView(Note note)</code> — le constructeur reçoit maintenant la note à afficher. Pour
+            créer l'écran, il faudra écrire <code>new NoteView(uneNote)</code>.</li>
+          <li><code>NoteText.Text = _note.Text;</code> — recopie le texte de la note dans le champ de saisie
+            (<code>NoteText</code> est le <code>x:Name</code> du <code>TextBox</code>).</li>
+          <li><code>if (_note.Filename == null) { … } else { … }</code> — le même <code>if</code> / <code>else</code>
+            qu'en PHP. <code>==</code> compare, <code>=</code> affecte.</li>
+          <li><code>_note.Date.ToString("dd/MM/yyyy HH:mm")</code> — transforme la date en texte selon un format,
+            comme <code>$date-&gt;format('d/m/Y H:i')</code> en PHP. Attention aux lettres&nbsp;: <code>MM</code> est
+            le mois, <code>mm</code> les minutes.</li>
+          <li><code>UpdateDisplay()</code> est une méthode privée&nbsp;: elle donne un nom à un morceau de code et
+            garde le constructeur lisible. Au sprint 3, elle réglera aussi le bouton Supprimer. Pour une note neuve,
+            elle affiche «&nbsp;Nouvelle note&nbsp;»&nbsp;; la date d'une note enregistrée se verra quand on pourra
+            rouvrir une note, au sprint 3.</li>
+          <li><code>CancelButton_Click</code> ne change pas&nbsp;: c'est celle du sprint 1.</li>
+        </ul>
+      </div>
+
+      <h3>2.3 — Créer la note et la transmettre</h3>
+      <p>
+        Le constructeur de <code>NoteView</code> exige maintenant une note&nbsp;: il faut la lui fournir. Dans
+        <code>MainWindow.xaml.cs</code>, ajoute <code>using WpfNotes.CodeBehind.Models;</code> en haut du fichier,
+        puis remplace la méthode <code>ShowNote</code> par&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>MainWindow.xaml.cs — la méthode ShowNote</div>
+  <div class="code-wrap"><pre class="code">// Affiche l'écran « une note », pour la note reçue en paramètre
+public void ShowNote(Note note)
+{
+    MainContent.Content = new NoteView(note);
+}</pre></div>
+</div>
+      <p>Puis, dans <code>AllNotesView.xaml.cs</code>, crée la note neuve au clic sur «&nbsp;+&nbsp;»&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Views/AllNotesView.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using System.Windows.Controls;
+using WpfNotes.CodeBehind.Models;
+
+namespace WpfNotes.CodeBehind.Views;
+
+public partial class AllNotesView : UserControl
+{
+    public AllNotesView()
+    {
+        InitializeComponent();
+    }
+
+    private void NewNoteButton_Click(object sender, RoutedEventArgs e)
+    {
+        Note newNote = new Note();
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowNote(newNote);
+    }
+}</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — un objet circule par référence</div>
+        <code>new Note()</code> crée <b>un seul</b> objet en mémoire. Quand on le passe à <code>ShowNote</code>, puis
+        au constructeur de <code>NoteView</code>, on ne le copie pas&nbsp;: on transmet une <b>référence</b> vers ce même
+        objet. Si <code>NoteView</code> modifie <code>_note.Text</code>, c'est bien la note créée dans
+        <code>AllNotesView</code> qui change. C'est exactement le comportement des objets en PHP.
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 640 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="AllNotesView crée un objet Note, le passe à MainWindow.ShowNote, qui le passe au constructeur de NoteView. Les trois désignent le même objet Note en mémoire.">
+          <defs>
+            <marker id="s2-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" style="fill:var(--muted)" />
+            </marker>
+          </defs>
+          <rect x="20" y="20" width="170" height="64" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="105" y="46" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--ink)">AllNotesView</text>
+          <text x="105" y="67" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink-soft)">new Note()</text>
+
+          <rect x="235" y="20" width="170" height="64" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="320" y="46" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--ink)">MainWindow</text>
+          <text x="320" y="67" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink-soft)">ShowNote(note)</text>
+
+          <rect x="450" y="20" width="170" height="64" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="535" y="46" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--ink)">NoteView</text>
+          <text x="535" y="67" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink-soft)">_note = note</text>
+
+          <path d="M190 52 L231 52" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s2-arrow)" />
+          <path d="M405 52 L446 52" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s2-arrow)" />
+
+          <rect x="220" y="140" width="200" height="72" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.5" />
+          <text x="320" y="166" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--accent-strong)">un seul objet Note</text>
+          <text x="320" y="186" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink-soft)">Filename · Text · Date</text>
+          <text x="320" y="202" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">en mémoire</text>
+
+          <path d="M105 84 L240 140" fill="none" style="stroke:var(--accent)" stroke-width="1.2" stroke-dasharray="4 4" marker-end="url(#s2-arrow)" />
+          <path d="M320 84 L320 136" fill="none" style="stroke:var(--accent)" stroke-width="1.2" stroke-dasharray="4 4" marker-end="url(#s2-arrow)" />
+          <path d="M535 84 L400 140" fill="none" style="stroke:var(--accent)" stroke-width="1.2" stroke-dasharray="4 4" marker-end="url(#s2-arrow)" />
+          <text x="60" y="120" font-family="Source Sans 3, sans-serif" font-size="11.5" style="fill:var(--muted)">référence</text>
+          <text x="500" y="120" font-family="Source Sans 3, sans-serif" font-size="11.5" style="fill:var(--muted)">référence</text>
+        </svg>
+      </div>
+
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        Clique sur «&nbsp;+&nbsp;»&nbsp;: l'écran d'une note affiche «&nbsp;Nouvelle note&nbsp;» en haut, et les
+        boutons Annuler et Enregistrer en bas. Annuler ramène à la liste&nbsp;; Enregistrer ne fait encore rien.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape3">
+    <div class="part-head"><div class="part-num">3</div><h2>Étape 3 — Enregistrer la note dans un fichier</h2></div>
+    <p class="part-sub">Champ statique, chemins de fichiers, écriture sur le disque.</p>
+    <div class="prose">
+
+      <h3>3.1 — Où ranger les notes&nbsp;?</h3>
+      <p>
+        Chaque note sera un fichier <code>.txt</code>, rangé dans un dossier propre à l'application, dans le profil
+        de l'utilisateur. Ce dossier sert à plusieurs écrans&nbsp;: on le déclare une seule fois, dans
+        <code>MainWindow</code>. Ajoute en haut de <code>MainWindow.xaml.cs</code> la ligne
+        <code>using System.IO;</code>, puis, au début de la classe, juste avant le constructeur&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>MainWindow.xaml.cs — le dossier des notes</div>
+  <div class="code-wrap"><pre class="code">// Dossier où sont rangées les notes, par exemple C:\Users\toi\AppData\Local\WpfNotes\Notes
+public static readonly string NotesFolder = Path.Combine(
+    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+    "WpfNotes",
+    "Notes");</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — <code>static</code>, appelé avec un point</div>
+        <code>static</code> signifie que la donnée appartient à la <b>classe</b>, pas à un objet&nbsp;: il en existe
+        une seule, partagée. En PHP, tu écrirais <code>public static string $notesFolder</code> et tu la lirais avec
+        <code>MainWindow::$notesFolder</code>. En C#, on écrit simplement <code>MainWindow.NotesFolder</code>.
+        <code>readonly</code> empêche de la modifier après son initialisation&nbsp;: c'est presque une constante.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)</code> — demande à
+            Windows le dossier des données locales de l'utilisateur, par exemple
+            <code>C:\Users\toi\AppData\Local</code>. Il diffère d'une machine à l'autre&nbsp;: on ne l'écrit jamais en dur.</li>
+          <li><code>Path.Combine(…)</code> — assemble des morceaux de chemin en ajoutant les <code>\</code> au bon
+            endroit. Le résultat&nbsp;: <code>C:\Users\toi\AppData\Local\WpfNotes\Notes</code>.</li>
+          <li>Les arguments sont répartis sur plusieurs lignes pour la lisibilité&nbsp;: pour le compilateur, c'est
+            un seul appel, terminé par <code>;</code>.</li>
+        </ul>
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — <code>using System.IO;</code></div>
+        <code>Path</code>, <code>File</code> et <code>Directory</code> appartiennent à l'espace de noms
+        <code>System.IO</code>. Dans un projet WPF, il ne fait pas partie des <code>using</code> ajoutés
+        automatiquement. Sans la ligne <code>using System.IO;</code>, le compilateur répond que «&nbsp;le nom
+        <code>Path</code> n'existe pas dans le contexte actuel&nbsp;».
+      </div>
+
+      <h3>3.2 — Écrire le fichier</h3>
+      <p>
+        Dans <code>NoteView.xaml.cs</code>, ajoute <code>using System.IO;</code> en haut du fichier, puis remplace la
+        méthode <code>SaveButton_Click</code> par&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Views/NoteView.xaml.cs — la méthode SaveButton_Click</div>
+  <div class="code-wrap"><pre class="code">private void SaveButton_Click(object sender, RoutedEventArgs e)
+{
+    // 1. Récupérer le texte saisi
+    _note.Text = NoteText.Text;
+
+    // 2. Première sauvegarde : choisir un nom de fichier unique
+    if (_note.Filename == null)
+    {
+        _note.Filename = "note-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".txt";
+    }
+
+    // 3. Écrire le fichier sur le disque
+    Directory.CreateDirectory(MainWindow.NotesFolder);
+    string path = Path.Combine(MainWindow.NotesFolder, _note.Filename);
+    File.WriteAllText(path, _note.Text);
+    _note.Date = File.GetLastWriteTime(path);
+
+    // 4. Revenir à la liste
+    MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+    mainWindow.ShowAllNotes();
+}</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — les mêmes fonctions de fichiers, rangées dans des classes</div>
+        <div class="recap-wrap">
+          <table class="recap">
+            <thead><tr><th>C#</th><th>PHP</th></tr></thead>
+            <tbody>
+              <tr><td>File.WriteAllText(path, text)</td><td><code>file_put_contents($path, $text)</code></td></tr>
+              <tr><td>File.ReadAllText(path)</td><td><code>file_get_contents($path)</code> (au sprint 3)</td></tr>
+              <tr><td>Directory.CreateDirectory(folder)</td><td><code>mkdir($folder, 0777, true)</code></td></tr>
+              <tr><td>File.GetLastWriteTime(path)</td><td><code>filemtime($path)</code></td></tr>
+              <tr><td>DateTime.Now</td><td><code>new DateTime()</code> ou <code>now()</code> dans Laravel</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><b>1.</b> Le texte du champ de saisie est recopié dans la note.</li>
+          <li><b>2.</b> Si la note n'a pas encore de fichier, on lui en choisit un, à partir de la date et de l'heure
+            à la milliseconde près (<code>fff</code>)&nbsp;: deux notes n'auront jamais le même nom. Les morceaux de
+            texte s'assemblent avec <code>+</code>. Aux enregistrements suivants, le nom ne change plus&nbsp;: le même
+            fichier est réécrit.</li>
+          <li><b>3.</b> <code>Directory.CreateDirectory</code> crée le dossier s'il n'existe pas encore (et ne fait
+            rien s'il existe). <code>string path = …;</code> déclare une variable locale de type <code>string</code>.
+            <code>File.WriteAllText</code> crée ou remplace le fichier. On relit enfin sa date de modification.</li>
+          <li><b>4.</b> On revient à la liste, comme avec Annuler.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — le compilateur suit les <code>null</code></div>
+        Après le <code>if</code>, <code>_note.Filename</code> ne peut plus être nul&nbsp;: soit il l'était et on vient
+        de lui donner une valeur, soit il avait déjà un nom. Le compilateur fait ce raisonnement tout seul et accepte
+        <code>Path.Combine(…, _note.Filename)</code> sans avertissement. Retire le <code>if</code> pour voir&nbsp;:
+        Visual Studio souligne aussitôt <code>_note.Filename</code> en vert.
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        <ol>
+          <li>Clique sur «&nbsp;+&nbsp;», tape un texte, clique sur Enregistrer&nbsp;: tu reviens à la liste. Elle
+            reste vide, c'est normal&nbsp;: elle ne lit pas encore le dossier (sprint 3).</li>
+          <li>Ouvre le dossier des notes&nbsp;: touches Windows + R, tape <code>%LocalAppData%\WpfNotes\Notes</code>,
+            valide. Un fichier <code>note-….txt</code> s'y trouve, avec ton texte.</li>
+          <li>Crée une autre note&nbsp;: un second fichier apparaît.</li>
+          <li>Crée une troisième note, mais clique sur Annuler&nbsp;: aucun fichier n'est ajouté.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape4">
+    <div class="part-head"><div class="part-num">4</div><h2>Étape 4 — Confirmer par un message</h2></div>
+    <p class="part-sub">Snackbar, markup extension, vérifier un null avant de s'en servir.</p>
+    <div class="prose">
+      <p>
+        Le changement de date en haut de l'écran passe inaperçu. Material Design propose un composant fait pour
+        ça&nbsp;: le <b>Snackbar</b>, un court message qui apparaît en bas de la fenêtre puis disparaît seul. Comme
+        tous les écrans pourront s'en servir, on le place dans la fenêtre principale.
+      </p>
+
+      <h3>4.1 — Le Snackbar dans la fenêtre</h3>
+      <p>Dans <code>MainWindow.xaml</code>, remplace la ligne du <code>ContentControl</code> par un <code>Grid</code> qui contient la zone d'écran et le Snackbar. Voici le fichier complet&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>MainWindow.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Window
+    x:Class="WpfNotes.CodeBehind.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    Title="WpfNotes"
+    Width="900"
+    Height="600"
+    WindowStartupLocation="CenterScreen"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{materialDesign:MaterialDesignFont}"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"&gt;
+
+    &lt;DockPanel&gt;
+
+        &lt;!-- Barre d'application : le titre --&gt;
+        &lt;materialDesign:ColorZone
+            Padding="16"
+            DockPanel.Dock="Top"
+            Mode="PrimaryMid"&gt;
+            &lt;TextBlock FontSize="20" Text="Mes notes" /&gt;
+        &lt;/materialDesign:ColorZone&gt;
+
+        &lt;Grid&gt;
+            &lt;!-- L'écran affiché : la liste des notes ou une note --&gt;
+            &lt;ContentControl x:Name="MainContent" /&gt;
+
+            &lt;!-- Zone de notification, en bas de la fenêtre --&gt;
+            &lt;materialDesign:Snackbar
+                x:Name="MainSnackbar"
+                VerticalAlignment="Bottom"
+                MessageQueue="{materialDesign:MessageQueue}" /&gt;
+        &lt;/Grid&gt;
+
+    &lt;/DockPanel&gt;
+&lt;/Window&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li>Le <code>Grid</code> sans lignes ni colonnes superpose ses deux enfants, comme le bouton «&nbsp;+&nbsp;»
+            au sprint 1&nbsp;: le Snackbar s'affiche par-dessus l'écran courant, aligné en bas.</li>
+          <li><code>x:Name="MainSnackbar"</code> — pour l'utiliser depuis le code-behind.</li>
+          <li><code>MessageQueue="{materialDesign:MessageQueue}"</code> — crée la <b>file de messages</b> du Snackbar.
+            Les messages y attendent leur tour&nbsp;: s'il y en a deux d'affilée, ils s'affichent l'un après
+            l'autre.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — les accolades en XAML</div>
+        Une valeur entre accolades n'est pas un simple texte&nbsp;: c'est une <b>markup extension</b>, un petit objet
+        qui calcule la valeur au moment où le XAML est lu. Tu en as déjà utilisé&nbsp;: <code>{StaticResource …}</code>
+        et <code>{DynamicResource …}</code> cherchent une ressource du thème. <code>{materialDesign:MessageQueue}</code>,
+        elle, crée un nouvel objet file de messages.
+      </div>
+
+      <h3>4.2 — Une méthode pour afficher un message</h3>
+      <p>Dans <code>MainWindow.xaml.cs</code>, ajoute la méthode <code>ShowMessage</code>. Voici le fichier complet pour ce sprint&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>MainWindow.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.IO;
+using System.Windows;
+using WpfNotes.CodeBehind.Models;
+using WpfNotes.CodeBehind.Views;
+
+namespace WpfNotes.CodeBehind;
+
+public partial class MainWindow : Window
+{
+    // Dossier où sont rangées les notes, par exemple C:\Users\toi\AppData\Local\WpfNotes\Notes
+    public static readonly string NotesFolder = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "WpfNotes",
+        "Notes");
+
+    public MainWindow()
+    {
+        InitializeComponent();
+        ShowAllNotes();
+    }
+
+    // Affiche l'écran « liste des notes »
+    public void ShowAllNotes()
+    {
+        MainContent.Content = new AllNotesView();
+    }
+
+    // Affiche l'écran « une note », pour la note reçue en paramètre
+    public void ShowNote(Note note)
+    {
+        MainContent.Content = new NoteView(note);
+    }
+
+    // Affiche un court message en bas de la fenêtre
+    public void ShowMessage(string message)
+    {
+        if (MainSnackbar.MessageQueue != null)
+        {
+            MainSnackbar.MessageQueue.Enqueue(message);
+        }
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>public void ShowMessage(string message)</code> — publique, parce que les écrans l'appelleront.</li>
+          <li><code>MainSnackbar.MessageQueue.Enqueue(message)</code> — ajoute le message à la file&nbsp;: le Snackbar
+            l'affiche quelques secondes.</li>
+          <li><code>if (MainSnackbar.MessageQueue != null)</code> — la propriété <code>MessageQueue</code> est déclarée
+            nullable par MaterialDesign (un Snackbar peut ne pas avoir de file). Le compilateur exige qu'on vérifie
+            avant de l'utiliser, sinon il affiche un avertissement. <code>!=</code> signifie «&nbsp;différent
+            de&nbsp;», comme en PHP.</li>
+        </ul>
+      </div>
+
+      <h3>4.3 — Appeler le message après l'enregistrement</h3>
+      <p>Dans <code>SaveButton_Click</code>, juste avant le retour à la liste, ajoute la ligne qui prévient l'utilisateur. Le fichier complet devient&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Views/NoteView.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.IO;
+using System.Windows;
+using System.Windows.Controls;
+using WpfNotes.CodeBehind.Models;
+
+namespace WpfNotes.CodeBehind.Views;
+
+public partial class NoteView : UserControl
+{
+    // La note affichée par cet écran
+    private readonly Note _note;
+
+    public NoteView(Note note)
+    {
+        InitializeComponent();
+
+        _note = note;
+        NoteText.Text = _note.Text;
+        UpdateDisplay();
+    }
+
+    private void CancelButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Revenir à la liste, sans rien enregistrer
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowAllNotes();
+    }
+
+    private void SaveButton_Click(object sender, RoutedEventArgs e)
+    {
+        // 1. Récupérer le texte saisi
+        _note.Text = NoteText.Text;
+
+        // 2. Première sauvegarde : choisir un nom de fichier unique
+        if (_note.Filename == null)
+        {
+            _note.Filename = "note-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".txt";
+        }
+
+        // 3. Écrire le fichier sur le disque
+        Directory.CreateDirectory(MainWindow.NotesFolder);
+        string path = Path.Combine(MainWindow.NotesFolder, _note.Filename);
+        File.WriteAllText(path, _note.Text);
+        _note.Date = File.GetLastWriteTime(path);
+
+        // 4. Prévenir l'utilisateur et revenir à la liste
+        MainWindow mainWindow = (MainWindow)Window.GetWindow(this);
+        mainWindow.ShowMessage("Note enregistrée");
+        mainWindow.ShowAllNotes();
+    }
+
+    // Affiche la date en haut de l'écran
+    private void UpdateDisplay()
+    {
+        if (_note.Filename == null)
+        {
+            DateText.Text = "Nouvelle note";
+        }
+        else
+        {
+            DateText.Text = "Enregistrée le " + _note.Date.ToString("dd/MM/yyyy HH:mm");
+        }
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>mainWindow.ShowMessage("Note enregistrée");</code> demande à la fenêtre d'afficher le message, juste
+        avant de revenir à la liste. Le message reste visible après le changement d'écran&nbsp;: le Snackbar
+        appartient à la fenêtre, pas à l'écran de la note, qui disparaît.
+      </div>
+
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        Crée une note et enregistre-la&nbsp;: tu reviens à la liste, et «&nbsp;Note enregistrée&nbsp;» apparaît en
+        bas de la fenêtre, puis disparaît. Crée et enregistre deux notes très vite&nbsp;: les messages s'enchaînent
+        sans se chevaucher.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="bilan">
+    <div class="part-head"><div class="part-num">5</div><h2>Bilan des notions vues</h2></div>
+    <div class="prose">
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Notion</th><th>Étape</th><th>Rôle dans le TP</th></tr></thead>
+          <tbody>
+            <tr><td>Propriété { get; set; }</td><td class="step">1</td><td>Exposer une donnée d'une classe, comme <code>Text</code> ou <code>Date</code>.</td></tr>
+            <tr><td>string?</td><td class="step">1</td><td>Une valeur qui peut être nulle, comme <code>?string</code> en PHP.</td></tr>
+            <tr><td>DateTime</td><td class="step">1</td><td>Une date et une heure&nbsp;; jamais nulle.</td></tr>
+            <tr><td>Constructeur avec paramètre</td><td class="step">2</td><td><code>new NoteView(note)</code>&nbsp;: l'écran reçoit la note à afficher.</td></tr>
+            <tr><td>readonly</td><td class="step">2</td><td>Un champ qu'on n'affecte que dans le constructeur.</td></tr>
+            <tr><td>Référence</td><td class="step">2</td><td>Un objet transmis n'est pas copié&nbsp;: tous désignent le même.</td></tr>
+            <tr><td>static</td><td class="step">3</td><td><code>MainWindow.NotesFolder</code>&nbsp;: une donnée de la classe, partagée.</td></tr>
+            <tr><td>File / Directory / Path</td><td class="step">3</td><td>Lire, écrire et assembler des chemins de fichiers.</td></tr>
+            <tr><td>Suivi des null</td><td class="step">3</td><td>Le compilateur sait qu'une valeur ne peut plus être nulle après un <code>if</code>.</td></tr>
+            <tr><td>Markup extension { }</td><td class="step">4</td><td>Une valeur calculée à la lecture du XAML.</td></tr>
+            <tr><td>Snackbar</td><td class="step">4</td><td>Un court message de confirmation en bas de la fenêtre.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="git">
+    <div class="part-head"><div class="part-num">6</div><h2>Fin de sprint&nbsp;: commit &amp; tag</h2></div>
+    <div class="prose">
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine du dépôt</div>
+  <div class="code-wrap"><pre class="code">git add .
+git commit -m "Sprint 2 : modèle Note, enregistrement sur le disque, notifications"
+git tag sprint-02
+git push
+git push --tags</pre></div>
+</div>
+      <p>
+        Le dépôt de référence <code>NoteApp</code> contient ce même état au tag <code>sprint-02</code> de la branche
+        <code>codeBehind</code>.
+      </p>
+      <p class="sprintnav"><a href="../sprint-01/guide-sprint-01.html">← Sprint 1 — Créer le projet</a><a href="../sprint-03/guide-sprint-03.html">Sprint 3 — Afficher, ouvrir et supprimer →</a></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>NoteApp · Version code-behind — Guide TP sprint 2, créer et enregistrer une note</p>
+  </footer>
+
+</div>

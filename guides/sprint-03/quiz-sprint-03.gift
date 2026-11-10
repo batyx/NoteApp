@@ -1,0 +1,64 @@
+// NoteApp/Sprint 3 - Afficher, ouvrir et supprimer les notes : quiz de validation (10 questions, QCM à réponse unique, sans pénalité)
+// Import Moodle : Banque de questions > Importer > format GIFT, encodage UTF-8
+
+$CATEGORY: NoteApp/Sprint 3 - Afficher, ouvrir et supprimer les notes
+
+::S3-01 [facile]:: [plain]À quoi sert la propriété ItemsSource d'un ItemsControl ? {
+=À lui fournir la collection d'objets à afficher, un élément par objet. #Exact \: NotesList.ItemsSource \= sortedNotes; et l'ItemsControl dessine une carte par note.
+~À choisir le panneau qui range les éléments, comme un WrapPanel. #C'est le rôle d'ItemsPanel.
+~À décrire l'apparence d'un élément de la liste. #C'est le rôle d'ItemTemplate et de son DataTemplate.
+}
+
+::S3-02 [facile]:: [plain]Dans le DataTemplate d'une carte, que fait \{Binding Text\} ? {
+~Il affiche le mot « Text ». #Les accolades indiquent une liaison de données, pas un texte fixe.
+~Il lit un champ nommé Text dans le code-behind d'AllNotesView. #Le Binding lit son DataContext, pas le code-behind.
+=Il affiche la propriété Text du DataContext de la carte. #Exact \: chaque carte reçoit sa note comme DataContext, et le Binding lit sa propriété Text.
+}
+
+::S3-03 [facile]:: [plain]Quel est l'équivalent C\# de $notes[] \= $note; pour une List<Note> ? {
+~notes[] \= note; #Cette syntaxe n'existe pas en C\#.
+=notes.Add(note); #Exact \: Add ajoute un élément à la fin de la liste.
+~notes.Push(note); #List<T> n'a pas de méthode Push \: on utilise Add.
+}
+
+::S3-04 [moyen]:: [plain]Dans notes.OrderByDescending(note \=> note.Date), que représente note \=> note.Date ? {
+=Une fonction fléchée \: pour une note, renvoyer sa date. #Exact \: c'est l'équivalent de fn ($note) \=> $note->date en PHP. Elle indique à OrderByDescending selon quoi trier.
+~Une comparaison qui vérifie que la note est plus récente que sa date. #\=> n'est pas une comparaison \: il sépare le paramètre de la valeur renvoyée.
+~Une affectation qui recopie la date dans une variable note. #Rien n'est affecté \: la fonction est appelée pour chaque note pendant le tri.
+}
+
+::S3-05 [moyen]:: [plain]Quelle est la différence entre Visibility.Hidden et Visibility.Collapsed ? {
+~Aucune \: ce sont deux noms pour la même valeur. #Les deux masquent l'élément, mais pas de la même façon.
+~Hidden libère la place de l'élément, alors que Collapsed garde un espace vide à sa place. #C'est l'inverse.
+=Les deux masquent l'élément, mais Collapsed ne lui laisse plus de place. #Exact \: Hidden garde l'espace vide, Collapsed le libère.
+}
+
+::S3-06 [moyen]:: [plain]Dans NoteCard_Click, pourquoi écrit-on (Note)clickedButton.DataContext ? {
+=Parce que DataContext est déclaré de type object, le type le plus général. #Exact \: comme sender, DataContext a le type le plus général ; la conversion permet d'utiliser la note.
+~Pour créer une copie de la note avant de l'ouvrir. #Une conversion de type ne crée aucune copie \: c'est le même objet.
+~Pour transformer le texte affiché par la carte en objet Note. #DataContext contient déjà l'objet Note, pas un texte.
+}
+
+::S3-07 [moyen]:: [plain]Dans ConfirmDialog, pourquoi écrire <sys\:Boolean>True</sys\:Boolean> plutôt que CommandParameter\="True" ? {
+~Parce que MaterialDesign interdit les attributs sur les boutons de dialogue. #Les attributs sont autorisés ; le problème est le type de la valeur.
+=Parce que l'attribut transmettrait le texte "True", pas un booléen. #Exact \: avec un texte, object.Equals(answer, true) serait faux. La balise sys\:Boolean crée un vrai booléen.
+~Parce que la balise affiche une case à cocher dans la boîte de dialogue. #Elle n'affiche rien \: elle fournit seulement la valeur renvoyée.
+}
+
+::S3-08 [difficile]:: [plain]Pourquoi DeleteButton_Click attend-il la réponse avec await DialogHost.Show(...) ? {
+~Parce que await rend la suppression du fichier plus rapide. #await ne rend rien plus rapide \: il évite de bloquer la fenêtre pendant l'attente.
+~Parce que toutes les méthodes de MaterialDesign doivent être appelées avec await. #Seules les méthodes qui renvoient une tâche s'attendent ainsi.
+=Parce qu'une attente bloquante gèlerait toute la fenêtre. #Exact \: y compris le bouton sur lequel l'utilisateur doit cliquer. Avec await, la fenêtre reste vivante pendant l'attente.
+}
+
+::S3-09 [moyen]:: [plain]Quand peut-on écrire async void plutôt que async Task ? {
+=Uniquement pour un gestionnaire d'événement, comme DeleteButton_Click. #Exact \: WPF impose à ces méthodes de renvoyer void. Ailleurs, une méthode async renvoie une Task, que l'appelant peut attendre.
+~Toujours \: async void est plus simple à écrire, et se comporte exactement comme async Task. #Non \: une méthode async void ne peut pas être attendue par son appelant.
+~Jamais \: WPF refuse les méthodes async void. #WPF les accepte, et c'est même la seule façon d'écrire un gestionnaire d'événement asynchrone.
+}
+
+::S3-10 [difficile]:: [plain]Qu'ont en commun tous les obstacles qui empêchent de tester DeleteButton_Click ? {
+~C\# ne permet pas d'écrire des tests unitaires pour une application de bureau. #C\# permet très bien les tests unitaires \: c'est l'organisation du code qui les empêche ici.
+=La logique est mélangée avec l'interface et avec le disque, dans la même méthode. #Exact \: le clic, la boîte de dialogue et la fenêtre d'un côté, le dossier des notes de l'autre. c'est ce que corrige la version MVVM, avec des ViewModels et des services remplaçables.
+~MaterialDesign bloque l'exécution de l'application en dehors de Visual Studio. #MaterialDesign n'empêche rien \: c'est l'appel direct au DialogHost depuis la vue qui pose problème.
+}

@@ -21,8 +21,16 @@
             <TextBlock FontSize="20" Text="Mes notes" />
         </materialDesign:ColorZone>
 
-        <!-- L'écran affiché : la liste des notes ou une note -->
-        <ContentControl x:Name="MainContent" />
+        <Grid>
+            <!-- L'écran affiché : la liste des notes ou une note -->
+            <ContentControl x:Name="MainContent" />
+
+            <!-- Zone de notification, en bas de la fenêtre -->
+            <materialDesign:Snackbar
+                x:Name="MainSnackbar"
+                VerticalAlignment="Bottom"
+                MessageQueue="{materialDesign:MessageQueue}" />
+        </Grid>
 
     </DockPanel>
 </Window>

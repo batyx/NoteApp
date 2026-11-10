@@ -13,10 +13,20 @@
             DockPanel.Dock="Bottom"
             Orientation="Horizontal">
             <Button
+                Margin="0,0,8,0"
                 Click="CancelButton_Click"
                 Content="Annuler"
                 Style="{StaticResource MaterialDesignFlatButton}" />
+            <Button Click="SaveButton_Click" Content="Enregistrer" />
         </StackPanel>
+
+        <!-- En haut : la date d'enregistrement -->
+        <TextBlock
+            x:Name="DateText"
+            Margin="0,0,0,8"
+            DockPanel.Dock="Top"
+            FontSize="12"
+            Opacity="0.7" />
 
         <!-- Au centre : le texte de la note -->
         <TextBox

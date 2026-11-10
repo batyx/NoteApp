@@ -5,7 +5,50 @@
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
 
     <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl x:Name="NotesList" Margin="8">
+
+                <!-- Comment ranger les éléments : les uns à côté des autres, avec retour à la ligne -->
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <!-- Comment dessiner UN élément de la liste : une carte cliquable -->
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button
+                            Height="Auto"
+                            Margin="8"
+                            Padding="0"
+                            Click="NoteCard_Click"
+                            Style="{StaticResource MaterialDesignFlatButton}">
+                            <materialDesign:Card
+                                Width="220"
+                                Height="160"
+                                Padding="16">
+                                <DockPanel>
+                                    <TextBlock
+                                        DockPanel.Dock="Bottom"
+                                        FontSize="12"
+                                        Opacity="0.7"
+                                        Text="{Binding Date, StringFormat='dd/MM/yyyy HH:mm'}" />
+                                    <TextBlock
+                                        Text="{Binding Text}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="Wrap" />
+                                </DockPanel>
+                            </materialDesign:Card>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+        </ScrollViewer>
+
         <TextBlock
+            x:Name="EmptyText"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Opacity="0.7"

@@ -17,6 +17,12 @@
                 Click="CancelButton_Click"
                 Content="Annuler"
                 Style="{StaticResource MaterialDesignFlatButton}" />
+            <Button
+                x:Name="DeleteButton"
+                Margin="0,0,8,0"
+                Click="DeleteButton_Click"
+                Content="Supprimer"
+                Style="{StaticResource MaterialDesignOutlinedButton}" />
             <Button Click="SaveButton_Click" Content="Enregistrer" />
         </StackPanel>
 

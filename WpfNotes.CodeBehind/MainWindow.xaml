@@ -11,26 +11,29 @@
     FontFamily="{materialDesign:MaterialDesignFont}"
     TextElement.Foreground="{DynamicResource MaterialDesignBody}">
 
-    <DockPanel>
+    <!-- Le DialogHost entoure tout le contenu : c'est lui qui affiche les boîtes de dialogue -->
+    <materialDesign:DialogHost Identifier="RootDialog">
+        <DockPanel>
 
-        <!-- Barre d'application : le titre -->
-        <materialDesign:ColorZone
-            Padding="16"
-            DockPanel.Dock="Top"
-            Mode="PrimaryMid">
-            <TextBlock FontSize="20" Text="Mes notes" />
-        </materialDesign:ColorZone>
+            <!-- Barre d'application : le titre -->
+            <materialDesign:ColorZone
+                Padding="16"
+                DockPanel.Dock="Top"
+                Mode="PrimaryMid">
+                <TextBlock FontSize="20" Text="Mes notes" />
+            </materialDesign:ColorZone>
 
-        <Grid>
-            <!-- L'écran affiché : la liste des notes ou une note -->
-            <ContentControl x:Name="MainContent" />
+            <Grid>
+                <!-- L'écran affiché : la liste des notes ou une note -->
+                <ContentControl x:Name="MainContent" />
 
-            <!-- Zone de notification, en bas de la fenêtre -->
-            <materialDesign:Snackbar
-                x:Name="MainSnackbar"
-                VerticalAlignment="Bottom"
-                MessageQueue="{materialDesign:MessageQueue}" />
-        </Grid>
+                <!-- Zone de notification, en bas de la fenêtre -->
+                <materialDesign:Snackbar
+                    x:Name="MainSnackbar"
+                    VerticalAlignment="Bottom"
+                    MessageQueue="{materialDesign:MessageQueue}" />
+            </Grid>
 
-    </DockPanel>
+        </DockPanel>
+    </materialDesign:DialogHost>
 </Window>

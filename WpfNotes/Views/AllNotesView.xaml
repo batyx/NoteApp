@@ -1,0 +1,61 @@
+<UserControl
+    x:Class="WpfNotes.Views.AllNotesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <!-- La collection Notes du ViewModel, une carte par note -->
+            <ItemsControl Margin="8" ItemsSource="{Binding Notes}">
+
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <materialDesign:Card
+                            Width="220"
+                            Height="160"
+                            Margin="8"
+                            Padding="16">
+                            <DockPanel>
+                                <TextBlock
+                                    DockPanel.Dock="Bottom"
+                                    FontSize="12"
+                                    Opacity="0.7"
+                                    Text="{Binding Date, StringFormat='dd/MM/yyyy HH:mm'}" />
+                                <TextBlock
+                                    Text="{Binding Text}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="Wrap" />
+                            </DockPanel>
+                        </materialDesign:Card>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Visible seulement quand la collection est vide -->
+        <TextBlock
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Opacity="0.7"
+            Text="Aucune note.">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Notes.Count}" Value="0">
+                            <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+    </Grid>
+</UserControl>

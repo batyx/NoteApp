@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="WpfNotes/WpfNotes.csproj" />
+  <Project Path="WpfNotes.Core/WpfNotes.Core.csproj" />
+</Solution>

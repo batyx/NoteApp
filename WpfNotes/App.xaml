@@ -3,7 +3,9 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-    StartupUri="MainWindow.xaml">
+    xmlns:viewModels="clr-namespace:WpfNotes.Core.ViewModels;assembly=WpfNotes.Core"
+    xmlns:views="clr-namespace:WpfNotes.Views">
+    <!-- Pas de StartupUri : c'est App.xaml.cs qui crée la fenêtre -->
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -13,6 +15,14 @@
                     SecondaryColor="Lime" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Pour chaque type de ViewModel, la vue qui l'affiche -->
+            <DataTemplate DataType="{x:Type viewModels:AllNotesViewModel}">
+                <views:AllNotesView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:NoteViewModel}">
+                <views:NoteView />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

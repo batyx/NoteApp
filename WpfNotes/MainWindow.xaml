@@ -3,7 +3,6 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-    xmlns:views="clr-namespace:WpfNotes.Views"
     Title="WpfNotes"
     Width="900"
     Height="600"
@@ -22,8 +21,13 @@
             <TextBlock FontSize="20" Text="Mes notes" />
         </materialDesign:ColorZone>
 
-        <!-- La liste des notes ; elle hérite du DataContext de la fenêtre -->
-        <views:AllNotesView />
+        <Grid>
+            <!-- L'écran courant : WPF choisit la vue grâce aux DataTemplate de App.xaml -->
+            <ContentControl Content="{Binding CurrentViewModel}" />
+
+            <!-- Zone de notification ; sa file de messages est donnée par App.xaml.cs -->
+            <materialDesign:Snackbar x:Name="MainSnackbar" VerticalAlignment="Bottom" />
+        </Grid>
 
     </DockPanel>
 </Window>

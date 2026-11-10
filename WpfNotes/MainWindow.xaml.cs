@@ -1,21 +1,17 @@
 using System.Windows;
-using WpfNotes.Core.Services;
+using MaterialDesignThemes.Wpf;
 using WpfNotes.Core.ViewModels;
 
 namespace WpfNotes;
 
 public partial class MainWindow : Window
 {
-    public MainWindow()
+    // Plus aucune logique ici : la fenêtre reçoit son ViewModel et la file de messages du Snackbar
+    public MainWindow(MainViewModel viewModel, SnackbarMessageQueue messageQueue)
     {
         InitializeComponent();
 
-        // On assemble les pièces à la main : le service, puis le ViewModel qui l'utilise
-        IFileService fileService = new FileService();
-        AllNotesViewModel viewModel = new AllNotesViewModel(fileService);
-        viewModel.LoadNotes();
-
-        // Le ViewModel devient la source des Binding de la fenêtre et de ce qu'elle contient
         DataContext = viewModel;
+        MainSnackbar.MessageQueue = messageQueue;
     }
 }

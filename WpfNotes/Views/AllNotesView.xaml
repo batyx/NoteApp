@@ -17,23 +17,32 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <materialDesign:Card
-                            Width="220"
-                            Height="160"
+                        <!-- La carte est un bouton : sa commande est celle du ViewModel de la liste,
+                             et son paramètre la note qu'elle affiche -->
+                        <Button
+                            Height="Auto"
                             Margin="8"
-                            Padding="16">
-                            <DockPanel>
-                                <TextBlock
-                                    DockPanel.Dock="Bottom"
-                                    FontSize="12"
-                                    Opacity="0.7"
-                                    Text="{Binding Date, StringFormat='dd/MM/yyyy HH:mm'}" />
-                                <TextBlock
-                                    Text="{Binding Text}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="Wrap" />
-                            </DockPanel>
-                        </materialDesign:Card>
+                            Padding="0"
+                            Command="{Binding DataContext.OpenNoteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding}"
+                            Style="{StaticResource MaterialDesignFlatButton}">
+                            <materialDesign:Card
+                                Width="220"
+                                Height="160"
+                                Padding="16">
+                                <DockPanel>
+                                    <TextBlock
+                                        DockPanel.Dock="Bottom"
+                                        FontSize="12"
+                                        Opacity="0.7"
+                                        Text="{Binding Date, StringFormat='dd/MM/yyyy HH:mm'}" />
+                                    <TextBlock
+                                        Text="{Binding Text}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="Wrap" />
+                                </DockPanel>
+                            </materialDesign:Card>
+                        </Button>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
 
@@ -45,7 +54,7 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             Opacity="0.7"
-            Text="Aucune note.">
+            Text="Aucune note. Cliquez sur + pour en créer une.">
             <TextBlock.Style>
                 <Style TargetType="TextBlock">
                     <Setter Property="Visibility" Value="Collapsed" />
@@ -57,5 +66,19 @@
                 </Style>
             </TextBlock.Style>
         </TextBlock>
+
+        <!-- Bouton flottant « Nouvelle note » -->
+        <Button
+            Margin="24"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Command="{Binding NewNoteCommand}"
+            Style="{StaticResource MaterialDesignFloatingActionButton}"
+            ToolTip="Nouvelle note">
+            <materialDesign:PackIcon
+                Width="24"
+                Height="24"
+                Kind="Plus" />
+        </Button>
     </Grid>
 </UserControl>

@@ -1,0 +1,1213 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteApp — Sprint 6, supprimer et prévenir la liste</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+:root{
+  --bg:#f5f3fa;
+  --surface:#ffffff;
+  --surface-2:#efebf8;
+  --ink:#211b34;
+  --ink-soft:#4a4360;
+  --muted:#726b8c;
+  --accent:#4c2d84;
+  --accent-strong:#341f5c;
+  --accent-tint:#eae3f8;
+  --lime:#5c8a29;
+  --lime-tint:#e9f3da;
+  --line:#e1dbf0;
+  --code-bg:#1e1b2b;
+  --code-header:#171420;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#9b7ee8;
+  --danger:#a6192e;
+  --danger-tint:#fbe7ea;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(33,27,52,.06), 0 8px 24px -12px rgba(33,27,52,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121f;
+    --surface:#1c1830;
+    --surface-2:#241f3d;
+    --ink:#efe9fb;
+    --ink-soft:#cabfe6;
+    --muted:#9186ad;
+    --accent:#b394f0;
+    --accent-strong:#d6c2ff;
+    --accent-tint:#2c2350;
+    --lime:#a5d66b;
+    --lime-tint:#26301c;
+    --line:#332a52;
+    --code-bg:#100e1a;
+    --code-header:#0b0a13;
+    --code-fg:#e8e3f5;
+    --code-muted:#8b83a8;
+    --code-accent:#b394f0;
+    --danger:#ff8fa3;
+    --danger-tint:#3a1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121f;
+  --surface:#1c1830;
+  --surface-2:#241f3d;
+  --ink:#efe9fb;
+  --ink-soft:#cabfe6;
+  --muted:#9186ad;
+  --accent:#b394f0;
+  --accent-strong:#d6c2ff;
+  --accent-tint:#2c2350;
+  --lime:#a5d66b;
+  --lime-tint:#26301c;
+  --line:#332a52;
+  --code-bg:#100e1a;
+  --code-header:#0b0a13;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#b394f0;
+  --danger:#ff8fa3;
+  --danger-tint:#3a1b23;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.62;
+}
+h1,h2,h3,h4{
+  font-family:"Barlow Semi Condensed","Segoe UI",sans-serif;
+  font-weight:700;color:var(--ink);text-wrap:balance;margin:0;
+}
+code, pre, .mono{font-family:"JetBrains Mono",Consolas,monospace;}
+::selection{background:var(--accent-tint);}
+a{color:var(--accent);}
+p{margin:0 0 14px;}
+p:last-child{margin-bottom:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:840px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14.5px;
+  letter-spacing:.02em;white-space:nowrap;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+.pillnav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.pillnav::-webkit-scrollbar{display:none;}
+.pillnav a{
+  flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:6px 9px;border-radius:999px;border:1px solid transparent;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.pillnav a:hover{background:var(--surface-2);color:var(--ink);}
+
+.container{max-width:840px;margin:0 auto;padding:0 24px;}
+.prose{max-width:680px;}
+
+/* ---------- Header ---------- */
+.pageintro{padding:44px 0 8px;}
+.eyebrow{
+  font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px;
+}
+.pageintro h1{font-size:clamp(27px,4vw,38px);line-height:1.08;max-width:22ch;margin-bottom:14px;}
+.pageintro p.lede{max-width:62ch;color:var(--ink-soft);font-size:16.5px;}
+
+.metastrip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;margin:28px 0 40px;
+}
+.metacell{background:var(--surface);padding:13px 16px;}
+.metacell .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.metacell .val{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);}
+@media (max-width:640px){.metastrip{grid-template-columns:1fr 1fr;}}
+
+/* ---------- Part sections ---------- */
+.part{scroll-margin-top:64px;padding:6px 0 46px;border-bottom:1px solid var(--line);}
+.part:last-of-type{border-bottom:none;}
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.part-num{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;
+  color:var(--surface);background:var(--accent);
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.part-head h2{font-size:23px;}
+.part-sub{margin:0 0 18px 44px;color:var(--muted);font-size:14.5px;}
+.part > .prose > h3{font-size:16.5px;margin:28px 0 10px;color:var(--ink);}
+.part > .prose > h3:first-child{margin-top:0;}
+
+/* ---------- Recurring blocks ---------- */
+.tagline{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 0;margin-bottom:8px;
+}
+.concept{
+  background:var(--accent-tint);border-radius:0 8px 8px 0;border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.concept .tagline{color:var(--accent-strong);}
+.concept b{color:var(--ink);}
+
+.explain{
+  background:var(--surface-2);border-radius:8px;padding:14px 18px;margin:0 0 16px;
+  font-size:14.5px;color:var(--ink-soft);
+}
+.explain .tagline{color:var(--muted);}
+.explain code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.92em;color:var(--ink);}
+.explain b{color:var(--ink);}
+.explain ul,.explain ol{margin:8px 0 0;padding-left:20px;}
+.explain li{margin-bottom:6px;}
+.explain li:last-child{margin-bottom:0;}
+
+.watch{
+  border-left:3px solid var(--danger);background:var(--danger-tint);border-radius:0 8px 8px 0;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-soft);
+}
+.watch .tagline{color:var(--danger);}
+.watch b{color:var(--ink);}
+.watch code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+
+.checkpoint{
+  border:1px dashed var(--lime);border-radius:8px;padding:14px 18px;margin:20px 0 0;
+  background:var(--lime-tint);font-size:14.5px;color:var(--ink-soft);
+}
+.checkpoint .tagline{color:var(--lime);}
+.checkpoint b{color:var(--ink);}
+.checkpoint code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+.checkpoint ol{margin:8px 0 0;padding-left:20px;}
+.checkpoint li{margin-bottom:5px;}
+
+p code, li code, .prose > p code{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-size:.9em;color:var(--accent-strong);font-weight:500;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block{border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:14px 0 16px;box-shadow:var(--shadow);}
+.code-file{
+  background:var(--code-header);color:var(--code-muted);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;padding:8px 14px;display:flex;align-items:center;gap:8px;
+}
+.code-file i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.code-file i.cs{background:var(--code-accent);}
+.code-file i.xaml{background:#e8a04e;}
+.code-file i.cfg{background:var(--lime);}
+.code-file i.new{background:var(--lime);}
+.code-wrap{background:var(--code-bg);overflow-x:auto;}
+pre.code{margin:0;padding:15px 16px;font-family:"JetBrains Mono",monospace;font-size:12.6px;line-height:1.62;color:var(--code-fg);white-space:pre;tab-size:4;}
+
+/* ---------- Diagram ---------- */
+.diagram{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:14px;margin:14px 0 16px;box-shadow:var(--shadow);}
+.diagram svg{width:100%;height:auto;display:block;}
+
+.recap{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;}
+.recap th,.recap td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+.recap th{background:var(--surface-2);font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;}
+.recap-wrap{overflow-x:auto;border-radius:8px;}
+.recap td:first-child{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+.recap td.step{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;color:var(--muted);white-space:nowrap;}
+
+footer{padding:24px 0 60px;}
+footer p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ---------- Depuis PHP (pont avec ce que les étudiants connaissent) ---------- */
+.bridge{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lime);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.bridge .tagline{color:var(--lime);}
+.bridge b{color:var(--ink);}
+.bridge p code,.bridge li code{color:var(--ink);}
+.bridge ul{margin:8px 0 0;padding-left:20px;}
+.bridge li{margin-bottom:5px;}
+.bridge .code-block{margin:10px 0 0;box-shadow:none;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare .code-block{margin:0;}
+@media (max-width:700px){.compare{grid-template-columns:1fr;}}
+.code-file i.php{background:#8892bf;}
+
+/* ---------- Navigation entre sprints ---------- */
+.sprintnav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font-size:14px;}
+.sprintnav a{text-decoration:none;font-weight:600;}
+.compare pre.code{font-size:11.2px;padding:12px 12px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand"><span class="dot"></span>NoteApp · Guide TP MVVM</span>
+    <nav class="pillnav" aria-label="Navigation des parties">
+      <a href="#depart">Départ</a>
+      <a href="#etape1">Étape 1</a>
+      <a href="#etape2">Étape 2</a>
+      <a href="#bilan">Bilan</a>
+      <a href="#git">Git</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <header class="pageintro">
+    <p class="eyebrow">NoteApp · Version MVVM · Sprint 6 (3 sur 5)</p>
+    <h1>Supprimer et prévenir la liste</h1>
+    <p class="lede">
+      Au sprint 5, une note neuve n'apparaissait pas dans la liste. Dans ce sprint, tu fais communiquer les ViewModels
+      par des messages, sans qu'ils se connaissent. Puis tu ajoutes la suppression, avec sa boîte de dialogue de
+      confirmation, cachée derrière une interface comme le reste.
+    </p>
+    <div class="metastrip">
+      <div class="metacell"><div class="lbl">Point de départ</div><div class="val">tag sprint-05</div></div>
+      <div class="metacell"><div class="lbl">Point d'arrivée</div><div class="val">tag sprint-06</div></div>
+      <div class="metacell"><div class="lbl">Nouveau contrat</div><div class="val">IDialogService</div></div>
+      <div class="metacell"><div class="lbl">Messages</div><div class="val">NoteSaved, NoteDeleted</div></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <section class="part" id="depart">
+    <div class="part-head"><div class="part-num">0</div><h2>Où en est-on&nbsp;? Que va-t-on faire&nbsp;?</h2></div>
+    <div class="prose">
+      <p>
+        À la fin du sprint 5, on crée, ouvre, modifie et enregistre des notes, et <code>MainViewModel</code> change
+        d'écran. Mais <code>AllNotesViewModel</code> n'est chargé qu'au démarrage, et <code>NoteViewModel</code> ne le
+        connaît pas&nbsp;: une note neuve n'apparaît dans la liste qu'au lancement suivant. Et il manque toujours la
+        suppression.
+      </p>
+      <p>Pour ce sprint&nbsp;: deux étapes.</p>
+      <div class="explain">
+        <ul>
+          <li><b>Étape 1</b> — prévenir la liste par un message après chaque enregistrement.</li>
+          <li><b>Étape 2</b> — supprimer une note, après une confirmation, avec un bouton grisé pour une note neuve.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape1">
+    <div class="part-head"><div class="part-num">1</div><h2>Étape 1 — Prévenir la liste par un message</h2></div>
+    <p class="part-sub">Messenger, classe de message, ObservableRecipient, IRecipient.</p>
+    <div class="prose">
+
+      <h3>1.1 — Le principe</h3>
+      <div class="concept">
+        <div class="tagline">Notion — le Messenger, une boîte aux lettres</div>
+        Le <b>Messenger</b> du Toolkit est une boîte aux lettres partagée. Un objet y <b>envoie</b> un message
+        (<code>Send</code>)&nbsp;; tous les objets abonnés à ce type de message le <b>reçoivent</b>
+        (<code>Receive</code>). L'émetteur ne sait pas qui reçoit, ni même si quelqu'un reçoit&nbsp;: <code>NoteViewModel</code>
+        annonce «&nbsp;cette note vient d'être enregistrée&nbsp;» sans connaître la liste.
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 640 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NoteViewModel envoie un NoteSavedMessage au Messenger, qui le transmet à AllNotesViewModel. NoteViewModel ne connaît pas AllNotesViewModel.">
+          <defs>
+            <marker id="s6-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" style="fill:var(--muted)" />
+            </marker>
+          </defs>
+          <rect x="20" y="50" width="160" height="66" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="100" y="78" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--ink)">NoteViewModel</text>
+          <text x="100" y="98" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">l'émetteur</text>
+
+          <rect x="240" y="50" width="160" height="66" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.5" />
+          <text x="320" y="78" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--accent-strong)">Messenger</text>
+          <text x="320" y="98" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">la boîte aux lettres</text>
+
+          <rect x="460" y="50" width="160" height="66" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="540" y="78" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--ink)">AllNotesViewModel</text>
+          <text x="540" y="98" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">le destinataire</text>
+
+          <path d="M180 83 L236 83" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s6-arrow)" />
+          <text x="208" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--muted)">Send(…)</text>
+          <path d="M400 83 L456 83" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s6-arrow)" />
+          <text x="428" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--muted)">Receive(…)</text>
+          <text x="320" y="150" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink-soft)">NoteSavedMessage · NoteDeletedMessage</text>
+        </svg>
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — comme les événements Laravel</div>
+        C'est le principe des événements de Laravel&nbsp;: le code qui enregistre une note écrit
+        <code>event(new NoteSaved($note));</code>, et un ou plusieurs <em>listeners</em> réagissent, sans que le code
+        émetteur les connaisse. Ici, le message est l'événement, et le ViewModel qui le reçoit est le listener.
+      </div>
+
+      <h3>1.2 — Les deux messages</h3>
+      <p>
+        Un message est une simple classe qui transporte des données. Dans <code>WpfNotes.Core</code>, crée un dossier
+        <code>Messages</code> et deux classes&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/Messages/NoteSavedMessage.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Models;
+
+namespace WpfNotes.Core.Messages;
+
+// Message envoyé par NoteViewModel après un enregistrement
+public class NoteSavedMessage
+{
+    public NoteSavedMessage(Note note)
+    {
+        Note = note;
+    }
+
+    // La note enregistrée
+    public Note Note { get; }
+}</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/Messages/NoteDeletedMessage.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Models;
+
+namespace WpfNotes.Core.Messages;
+
+// Message envoyé par NoteViewModel après une suppression
+public class NoteDeletedMessage
+{
+    public NoteDeletedMessage(Note note)
+    {
+        Note = note;
+    }
+
+    // La note supprimée
+    public Note Note { get; }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>public Note Note { get; }</code> — une propriété en lecture seule, affectée une fois pour toutes dans le
+        constructeur. Un message ne change pas après son envoi. Le message de suppression ne sert qu'à l'étape 2, mais
+        on l'écrit maintenant, avec son jumeau.
+      </div>
+
+      <h3>1.3 — La liste reçoit les messages</h3>
+      <p>Remplace le contenu de <code>AllNotesViewModel.cs</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes.Core/ViewModels/AllNotesViewModel.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using WpfNotes.Core.Messages;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// La logique de l'écran « liste des notes », sans aucun lien avec WPF.
+// Elle reçoit les messages envoyés après un enregistrement ou une suppression.
+public partial class AllNotesViewModel : ObservableRecipient,
+    IRecipient&lt;NoteSavedMessage&gt;,
+    IRecipient&lt;NoteDeletedMessage&gt;
+{
+    private readonly IFileService _fileService;
+    private readonly INavigationService _navigationService;
+
+    public AllNotesViewModel(IFileService fileService, INavigationService navigationService, IMessenger messenger)
+        : base(messenger)
+    {
+        _fileService = fileService;
+        _navigationService = navigationService;
+
+        // Commencer à recevoir les messages
+        IsActive = true;
+    }
+
+    // Les notes affichées par la vue, la plus récente en premier
+    public ObservableCollection&lt;Note&gt; Notes { get; } = new ObservableCollection&lt;Note&gt;();
+
+    // Lit les notes et remplit la collection
+    public void LoadNotes()
+    {
+        List&lt;Note&gt; notes = _fileService.GetNotes();
+        List&lt;Note&gt; sortedNotes = notes.OrderByDescending(note =&gt; note.Date).ToList();
+
+        Notes.Clear();
+        foreach (Note note in sortedNotes)
+        {
+            Notes.Add(note);
+        }
+    }
+
+    // Bouton « + » : ouvrir une note neuve
+    [RelayCommand]
+    private void NewNote()
+    {
+        Note newNote = new Note();
+        _navigationService.NavigateToNote(newNote);
+    }
+
+    // Clic sur une carte : ouvrir la note qu'elle affiche
+    [RelayCommand]
+    private void OpenNote(Note note)
+    {
+        _navigationService.NavigateToNote(note);
+    }
+
+    // Une note vient d'être enregistrée : elle passe en tête de la liste
+    public void Receive(NoteSavedMessage message)
+    {
+        Notes.Remove(message.Note);
+        Notes.Insert(0, message.Note);
+    }
+
+    // Une note vient d'être supprimée : elle quitte la liste
+    public void Receive(NoteDeletedMessage message)
+    {
+        Notes.Remove(message.Note);
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>ObservableRecipient</code> — une autre classe de base du Toolkit&nbsp;: un <code>ObservableObject</code>
+            qui sait en plus recevoir des messages. Elle reçoit le Messenger dans son constructeur.</li>
+          <li><code>: base(messenger)</code> — transmet le Messenger au constructeur de la classe parente, comme
+            <code>parent::__construct($messenger)</code> en PHP.</li>
+          <li><code>IRecipient&lt;NoteSavedMessage&gt;</code> et <code>IRecipient&lt;NoteDeletedMessage&gt;</code> — la même
+            interface <b>générique</b>, réalisée deux fois, pour deux types de messages. Chacune impose une méthode
+            <code>Receive</code>, avec le bon type de paramètre.</li>
+          <li><code>IsActive = true;</code> — abonne le ViewModel à tous les messages qu'il sait recevoir.</li>
+          <li><code>Receive(NoteSavedMessage message)</code> — retire la note de la liste (si elle y était), puis
+            l'insère en tête. Une note neuve apparaît, une note modifiée remonte.</li>
+          <li><code>Receive(NoteDeletedMessage message)</code> — retire la note. <code>Remove</code> compare les
+            références&nbsp;: c'est le même objet <code>Note</code> que celui de la carte.</li>
+        </ul>
+      </div>
+
+      <h3>1.4 — L'écran d'une note envoie le message</h3>
+      <p>Remplace le contenu de <code>NoteViewModel.cs</code> par cette version&nbsp;: le Messenger arrive dans le constructeur, et <code>Save</code> envoie le message.</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes.Core/ViewModels/NoteViewModel.cs — version de l'étape 1</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using WpfNotes.Core.Messages;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// La logique de l'écran « une note »
+public partial class NoteViewModel : ObservableObject
+{
+    private readonly Note _note;
+    private readonly IFileService _fileService;
+    private readonly INotificationService _notificationService;
+    private readonly INavigationService _navigationService;
+    private readonly IMessenger _messenger;
+
+    public NoteViewModel(
+        Note note,
+        IFileService fileService,
+        INotificationService notificationService,
+        INavigationService navigationService,
+        IMessenger messenger)
+    {
+        _note = note;
+        _fileService = fileService;
+        _notificationService = notificationService;
+        _navigationService = navigationService;
+        _messenger = messenger;
+
+        Text = note.Text;
+    }
+
+    // Le texte en cours d'édition, lié au champ de saisie de la vue
+    [ObservableProperty]
+    private string _text = "";
+
+    // La ligne affichée en haut de l'écran
+    public string DateText
+    {
+        get
+        {
+            if (_note.Filename == null)
+            {
+                return "Nouvelle note";
+            }
+            return "Enregistrée le " + _note.Date.ToString("dd/MM/yyyy HH:mm");
+        }
+    }
+
+    // Bouton Annuler : revenir à la liste sans rien enregistrer
+    [RelayCommand]
+    private void Cancel()
+    {
+        _navigationService.NavigateToAllNotes();
+    }
+
+    // Bouton Enregistrer : écrire la note, prévenir la liste et l'utilisateur, revenir à la liste
+    [RelayCommand]
+    private void Save()
+    {
+        _note.Text = Text;
+        _fileService.SaveNote(_note);
+
+        _messenger.Send(new NoteSavedMessage(_note));
+        _notificationService.Show("Note enregistrée");
+        _navigationService.NavigateToAllNotes();
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>_messenger.Send(new NoteSavedMessage(_note));</code> — crée le message et le dépose dans la boîte aux
+        lettres. <code>AllNotesViewModel</code> le reçoit aussitôt, avant même la ligne suivante. L'ordre compte&nbsp;: le
+        message part <em>avant</em> le retour à la liste, qui s'affiche donc déjà à jour.
+      </div>
+
+      <h3>1.5 — Faire circuler le Messenger</h3>
+      <p>
+        Les deux ViewModels doivent utiliser <b>le même</b> Messenger, sinon les messages n'arriveraient pas.
+        <code>MainViewModel</code> le reçoit et le transmet. Remplace le contenu de <code>MainViewModel.cs</code>&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes.Core/ViewModels/MainViewModel.cs — version de l'étape 1</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// Le ViewModel de la fenêtre. Il expose l'écran courant, et c'est lui qui change d'écran :
+// il joue donc aussi le rôle du service de navigation.
+public partial class MainViewModel : ObservableObject, INavigationService
+{
+    private readonly IFileService _fileService;
+    private readonly INotificationService _notificationService;
+    private readonly IMessenger _messenger;
+    private readonly AllNotesViewModel _allNotesViewModel;
+
+    public MainViewModel(
+        IFileService fileService,
+        INotificationService notificationService,
+        IMessenger messenger)
+    {
+        _fileService = fileService;
+        _notificationService = notificationService;
+        _messenger = messenger;
+
+        // La liste existe pendant toute la vie de l'application ; « this » est son service de navigation
+        _allNotesViewModel = new AllNotesViewModel(fileService, this, messenger);
+        _allNotesViewModel.LoadNotes();
+
+        // Au démarrage, on affiche la liste
+        NavigateToAllNotes();
+    }
+
+    // Le ViewModel de l'écran affiché ; la fenêtre choisit la vue qui lui correspond
+    [ObservableProperty]
+    private object? _currentViewModel;
+
+    public void NavigateToAllNotes()
+    {
+        CurrentViewModel = _allNotesViewModel;
+    }
+
+    public void NavigateToNote(Note note)
+    {
+        NoteViewModel noteViewModel = new NoteViewModel(
+            note, _fileService, _notificationService, this, _messenger);
+        CurrentViewModel = noteViewModel;
+    }
+}</pre></div>
+</div>
+      <p>Dans <code>App.xaml.cs</code>, crée le Messenger et donne-le à <code>MainViewModel</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/App.xaml.cs — version de l'étape 1</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using CommunityToolkit.Mvvm.Messaging;
+using MaterialDesignThemes.Wpf;
+using WpfNotes.Core.Services;
+using WpfNotes.Core.ViewModels;
+using WpfNotes.Services;
+
+namespace WpfNotes;
+
+public partial class App : Application
+{
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        // On assemble l'application à la main : chaque objet reçoit ce dont il a besoin
+        IFileService fileService = new FileService();
+        SnackbarMessageQueue messageQueue = new SnackbarMessageQueue(TimeSpan.FromSeconds(2));
+        INotificationService notificationService = new NotificationService(messageQueue);
+        IMessenger messenger = WeakReferenceMessenger.Default;
+        MainViewModel mainViewModel = new MainViewModel(fileService, notificationService, messenger);
+
+        MainWindow mainWindow = new MainWindow(mainViewModel, messageQueue);
+        mainWindow.Show();
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>IMessenger</code> — le contrat d'un Messenger, fourni par le Toolkit. Les ViewModels ne connaissent
+            que lui.</li>
+          <li><code>WeakReferenceMessenger.Default</code> — la réalisation fournie par le Toolkit, dans une instance
+            unique partagée par toute l'application. <em>Weak reference</em> (référence faible)&nbsp;: le Messenger ne
+            garde pas en vie un destinataire que plus personne n'utilise.</li>
+        </ul>
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        <ol>
+          <li>Crée une note neuve et enregistre-la&nbsp;: de retour sur la liste, sa carte apparaît en tête. Le problème
+            du sprint 5 est résolu.</li>
+          <li>Ouvre une ancienne note, modifie-la, enregistre&nbsp;: sa carte remonte en tête.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape2">
+    <div class="part-head"><div class="part-num">2</div><h2>Étape 2 — Supprimer après confirmation</h2></div>
+    <p class="part-sub">IDialogService, commande asynchrone, CanExecute, bouton grisé automatiquement.</p>
+    <div class="prose">
+
+      <h3>2.1 — Le contrat de la boîte de dialogue</h3>
+      <div class="concept">
+        <div class="tagline">Notion — à quoi sert <code>IDialogService</code>&nbsp;?</div>
+        Dans la version code-behind, l'écran appelait directement <code>DialogHost.Show(…)</code>&nbsp;: impossible de
+        tester sans un vrai clic. <code>IDialogService</code> sera utilisé par <code>NoteViewModel</code>, et aura deux
+        réalisations&nbsp;: <code>DialogService</code>, dans le projet WPF, qui ouvre le vrai <code>DialogHost</code>, et
+        <code>FakeDialogService</code>, au sprint 8, qui répond «&nbsp;oui&nbsp;» ou «&nbsp;non&nbsp;» selon ce que le
+        test a décidé. Le ViewModel pose sa question de la même façon aux deux.
+      </div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/Services/IDialogService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">namespace WpfNotes.Core.Services;
+
+// Poser une question à l'utilisateur.
+// L'implémentation réelle utilise le DialogHost de MaterialDesign, dans le projet WPF.
+public interface IDialogService
+{
+    // Demande une confirmation ; renvoie true si l'utilisateur accepte
+    Task&lt;bool&gt; ConfirmAsync(string message);
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>Task&lt;bool&gt; ConfirmAsync(string message);</code> — la réponse n'arrive que quand l'utilisateur
+        clique&nbsp;: la méthode renvoie une <b>tâche</b> qui donnera un <code>bool</code> à ce moment-là. Par convention,
+        le nom d'une méthode asynchrone se termine par <code>Async</code>.
+      </div>
+
+      <h3>2.2 — La réalisation WPF</h3>
+      <p>
+        Copie <code>Views/ConfirmDialog.xaml</code> et son code-behind depuis la version code-behind (sprint 3), en
+        remplaçant l'espace de noms par <code>WpfNotes.Views</code>&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes/Views/ConfirmDialog.xaml — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.Views.ConfirmDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib"&gt;
+
+    &lt;StackPanel MinWidth="280" Margin="24"&gt;
+        &lt;TextBlock
+            x:Name="MessageText"
+            Margin="0,0,0,24"
+            FontSize="16"
+            TextWrapping="Wrap" /&gt;
+
+        &lt;StackPanel HorizontalAlignment="Right" Orientation="Horizontal"&gt;
+            &lt;!-- CommandParameter devient la valeur renvoyée par DialogHost.Show --&gt;
+            &lt;Button
+                Margin="0,0,8,0"
+                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                Content="Annuler"
+                IsCancel="True"
+                Style="{StaticResource MaterialDesignFlatButton}"&gt;
+                &lt;Button.CommandParameter&gt;
+                    &lt;sys:Boolean&gt;False&lt;/sys:Boolean&gt;
+                &lt;/Button.CommandParameter&gt;
+            &lt;/Button&gt;
+            &lt;Button
+                Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                Content="Supprimer"
+                IsDefault="True"
+                Style="{StaticResource MaterialDesignFlatButton}"&gt;
+                &lt;Button.CommandParameter&gt;
+                    &lt;sys:Boolean&gt;True&lt;/sys:Boolean&gt;
+                &lt;/Button.CommandParameter&gt;
+            &lt;/Button&gt;
+        &lt;/StackPanel&gt;
+    &lt;/StackPanel&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes/Views/ConfirmDialog.xaml.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using System.Windows.Controls;
+
+namespace WpfNotes.Views;
+
+public partial class ConfirmDialog : UserControl
+{
+    public ConfirmDialog(string message)
+    {
+        InitializeComponent();
+        MessageText.Text = message;
+    }
+}</pre></div>
+</div>
+      <p>Puis la réalisation de <code>IDialogService</code>, dans le dossier <code>Services</code> du projet WPF&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes/Services/DialogService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using MaterialDesignThemes.Wpf;
+using WpfNotes.Core.Services;
+using WpfNotes.Views;
+
+namespace WpfNotes.Services;
+
+// L'implémentation réelle de IDialogService : le DialogHost de MaterialDesign
+public class DialogService : IDialogService
+{
+    public async Task&lt;bool&gt; ConfirmAsync(string message)
+    {
+        // "RootDialog" est l'Identifier du DialogHost déclaré dans MainWindow.xaml
+        ConfirmDialog dialog = new ConfirmDialog(message);
+        object? answer = await DialogHost.Show(dialog, "RootDialog");
+        bool confirmed = object.Equals(answer, true);
+        return confirmed;
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        C'est le code du <code>DeleteButton_Click</code> du sprint 3, déplacé ici&nbsp;: ouvrir la boîte, attendre la
+        réponse avec <code>await</code>, la comparer à <code>true</code>. <code>return confirmed;</code> renvoie la
+        réponse&nbsp;; comme la méthode est <code>async</code>, l'appelant reçoit une <code>Task&lt;bool&gt;</code>.
+      </div>
+      <p>Dans <code>MainWindow.xaml</code>, entoure le contenu d'un <code>DialogHost</code>, comme au sprint 3&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/MainWindow.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Window
+    x:Class="WpfNotes.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    Title="WpfNotes"
+    Width="900"
+    Height="600"
+    WindowStartupLocation="CenterScreen"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{materialDesign:MaterialDesignFont}"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"&gt;
+
+    &lt;!-- Le DialogHost entoure tout le contenu : c'est lui qui affiche les boîtes de dialogue --&gt;
+    &lt;materialDesign:DialogHost Identifier="RootDialog"&gt;
+        &lt;DockPanel&gt;
+
+            &lt;!-- Barre d'application : le titre --&gt;
+            &lt;materialDesign:ColorZone
+                Padding="16"
+                DockPanel.Dock="Top"
+                Mode="PrimaryMid"&gt;
+                &lt;TextBlock FontSize="20" Text="Mes notes" /&gt;
+            &lt;/materialDesign:ColorZone&gt;
+
+            &lt;Grid&gt;
+                &lt;!-- L'écran courant : WPF choisit la vue grâce aux DataTemplate de App.xaml --&gt;
+                &lt;ContentControl Content="{Binding CurrentViewModel}" /&gt;
+
+                &lt;!-- Zone de notification ; sa file de messages est donnée par App.xaml.cs --&gt;
+                &lt;materialDesign:Snackbar x:Name="MainSnackbar" VerticalAlignment="Bottom" /&gt;
+            &lt;/Grid&gt;
+
+        &lt;/DockPanel&gt;
+    &lt;/materialDesign:DialogHost&gt;
+&lt;/Window&gt;</pre></div>
+</div>
+
+      <h3>2.3 — La commande Supprimer</h3>
+      <p>Remplace le contenu de <code>NoteViewModel.cs</code> par sa version finale&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes.Core/ViewModels/NoteViewModel.cs</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
+using WpfNotes.Core.Messages;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// La logique de l'écran « une note »
+public partial class NoteViewModel : ObservableObject
+{
+    private readonly Note _note;
+    private readonly IFileService _fileService;
+    private readonly IDialogService _dialogService;
+    private readonly INotificationService _notificationService;
+    private readonly INavigationService _navigationService;
+    private readonly IMessenger _messenger;
+
+    public NoteViewModel(
+        Note note,
+        IFileService fileService,
+        IDialogService dialogService,
+        INotificationService notificationService,
+        INavigationService navigationService,
+        IMessenger messenger)
+    {
+        _note = note;
+        _fileService = fileService;
+        _dialogService = dialogService;
+        _notificationService = notificationService;
+        _navigationService = navigationService;
+        _messenger = messenger;
+
+        Text = note.Text;
+    }
+
+    // Le texte en cours d'édition, lié au champ de saisie de la vue
+    [ObservableProperty]
+    private string _text = "";
+
+    // La ligne affichée en haut de l'écran
+    public string DateText
+    {
+        get
+        {
+            if (_note.Filename == null)
+            {
+                return "Nouvelle note";
+            }
+            return "Enregistrée le " + _note.Date.ToString("dd/MM/yyyy HH:mm");
+        }
+    }
+
+    // Bouton Annuler : revenir à la liste sans rien enregistrer
+    [RelayCommand]
+    private void Cancel()
+    {
+        _navigationService.NavigateToAllNotes();
+    }
+
+    // Bouton Enregistrer : écrire la note, prévenir la liste et l'utilisateur, revenir à la liste
+    [RelayCommand]
+    private void Save()
+    {
+        _note.Text = Text;
+        _fileService.SaveNote(_note);
+
+        _messenger.Send(new NoteSavedMessage(_note));
+        _notificationService.Show("Note enregistrée");
+        _navigationService.NavigateToAllNotes();
+    }
+
+    // Bouton Supprimer : seulement pour une note déjà enregistrée (voir CanDelete)
+    [RelayCommand(CanExecute = nameof(CanDelete))]
+    private async Task DeleteAsync()
+    {
+        if (_note.Filename == null)
+        {
+            return;
+        }
+        string filename = _note.Filename;
+
+        // 1. Demander confirmation et attendre la réponse
+        bool confirmed = await _dialogService.ConfirmAsync("Supprimer cette note ?");
+        if (!confirmed)
+        {
+            return;
+        }
+
+        // 2. Supprimer le fichier
+        _fileService.DeleteNote(filename);
+
+        // 3. Prévenir la liste et l'utilisateur, revenir à la liste
+        _messenger.Send(new NoteDeletedMessage(_note));
+        _notificationService.Show("Note supprimée");
+        _navigationService.NavigateToAllNotes();
+    }
+
+    // Une note neuve n'a pas encore de fichier : rien à supprimer, le bouton est grisé
+    private bool CanDelete()
+    {
+        return _note.Filename != null;
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Code généré par le Toolkit — une commande asynchrone, avec condition</div>
+        <p>
+          Devant <code>DeleteAsync()</code>, qui renvoie une <code>Task</code>, <code>[RelayCommand]</code> génère une
+          commande <b>asynchrone</b>, nommée sans le suffixe <code>Async</code>&nbsp;: <code>DeleteCommand</code>.
+          <code>CanExecute = nameof(CanDelete)</code> lui associe la méthode qui dit si elle peut s'exécuter. En
+          simplifiant&nbsp;:
+        </p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Code généré (simplifié) — la commande DeleteCommand</div>
+  <div class="code-wrap"><pre class="code">private AsyncRelayCommand? _deleteCommand;
+
+public IAsyncRelayCommand DeleteCommand
+{
+    get
+    {
+        if (_deleteCommand == null)
+        {
+            // la commande appellera DeleteAsync(), seulement si CanDelete() renvoie true
+            _deleteCommand = new AsyncRelayCommand(DeleteAsync, CanDelete);
+        }
+        return _deleteCommand;
+    }
+}</pre></div>
+</div>
+        <p><code>nameof(CanDelete)</code> donne le texte <code>"CanDelete"</code>, vérifié par le compilateur&nbsp;: une faute de frappe dans le nom serait signalée.</p>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — <code>CanExecute</code>, un bouton grisé sans une ligne de code dans la vue</div>
+        Un bouton relié à une commande demande à cette commande si elle peut s'exécuter. Si <code>CanDelete()</code>
+        renvoie <code>false</code>, le bouton Supprimer est <b>grisé</b> automatiquement. Au sprint 3, il fallait écrire
+        <code>DeleteButton.IsEnabled = false;</code> dans le code-behind. Ici, la règle «&nbsp;une note neuve ne se
+        supprime pas&nbsp;» vit dans le ViewModel, où un test pourra la vérifier.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li>Le constructeur reçoit en plus <code>IDialogService</code>.</li>
+          <li><code>private async Task DeleteAsync()</code> — une méthode asynchrone qui renvoie une <code>Task</code>,
+            et non <code>void</code>&nbsp;: ce n'est plus un gestionnaire d'événement, et la commande (comme un test)
+            peut attendre sa fin.</li>
+          <li><code>await _dialogService.ConfirmAsync(…)</code> — pose la question par le contrat. Le ViewModel ne sait
+            pas si c'est une vraie boîte de dialogue ou un faux.</li>
+          <li>Après la suppression&nbsp;: le message <code>NoteDeletedMessage</code> pour la liste, la notification, et
+            le retour à la liste.</li>
+        </ul>
+      </div>
+
+      <h3>2.4 — Fournir le service de dialogue</h3>
+      <p>
+        <code>MainViewModel</code> transmet le nouveau service à chaque <code>NoteViewModel</code>, et <code>App</code> le
+        crée. Voici leurs versions finales&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes.Core/ViewModels/MainViewModel.cs</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// Le ViewModel de la fenêtre. Il expose l'écran courant, et c'est lui qui change d'écran :
+// il joue donc aussi le rôle du service de navigation.
+public partial class MainViewModel : ObservableObject, INavigationService
+{
+    private readonly IFileService _fileService;
+    private readonly IDialogService _dialogService;
+    private readonly INotificationService _notificationService;
+    private readonly IMessenger _messenger;
+    private readonly AllNotesViewModel _allNotesViewModel;
+
+    public MainViewModel(
+        IFileService fileService,
+        IDialogService dialogService,
+        INotificationService notificationService,
+        IMessenger messenger)
+    {
+        _fileService = fileService;
+        _dialogService = dialogService;
+        _notificationService = notificationService;
+        _messenger = messenger;
+
+        // La liste existe pendant toute la vie de l'application ; « this » est son service de navigation
+        _allNotesViewModel = new AllNotesViewModel(fileService, this, messenger);
+        _allNotesViewModel.LoadNotes();
+
+        // Au démarrage, on affiche la liste
+        NavigateToAllNotes();
+    }
+
+    // Le ViewModel de l'écran affiché ; la fenêtre choisit la vue qui lui correspond
+    [ObservableProperty]
+    private object? _currentViewModel;
+
+    public void NavigateToAllNotes()
+    {
+        CurrentViewModel = _allNotesViewModel;
+    }
+
+    public void NavigateToNote(Note note)
+    {
+        NoteViewModel noteViewModel = new NoteViewModel(
+            note, _fileService, _dialogService, _notificationService, this, _messenger);
+        CurrentViewModel = noteViewModel;
+    }
+}</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/App.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using CommunityToolkit.Mvvm.Messaging;
+using MaterialDesignThemes.Wpf;
+using WpfNotes.Core.Services;
+using WpfNotes.Core.ViewModels;
+using WpfNotes.Services;
+
+namespace WpfNotes;
+
+public partial class App : Application
+{
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        // On assemble l'application à la main : chaque objet reçoit ce dont il a besoin
+        IFileService fileService = new FileService();
+        IDialogService dialogService = new DialogService();
+        SnackbarMessageQueue messageQueue = new SnackbarMessageQueue(TimeSpan.FromSeconds(2));
+        INotificationService notificationService = new NotificationService(messageQueue);
+        IMessenger messenger = WeakReferenceMessenger.Default;
+        MainViewModel mainViewModel = new MainViewModel(fileService, dialogService, notificationService, messenger);
+
+        MainWindow mainWindow = new MainWindow(mainViewModel, messageQueue);
+        mainWindow.Show();
+    }
+}</pre></div>
+</div>
+
+      <h3>2.5 — Le bouton Supprimer</h3>
+      <p>Dans <code>NoteView.xaml</code>, ajoute le bouton entre Annuler et Enregistrer&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/Views/NoteView.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.Views.NoteView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;DockPanel Margin="16"&gt;
+
+        &lt;!-- En bas : les boutons, reliés aux commandes du NoteViewModel --&gt;
+        &lt;StackPanel
+            Margin="0,16,0,0"
+            HorizontalAlignment="Right"
+            DockPanel.Dock="Bottom"
+            Orientation="Horizontal"&gt;
+            &lt;Button
+                Margin="0,0,8,0"
+                Command="{Binding CancelCommand}"
+                Content="Annuler"
+                Style="{StaticResource MaterialDesignFlatButton}" /&gt;
+            &lt;!-- Grisé automatiquement quand la commande ne peut pas s'exécuter (CanDelete) --&gt;
+            &lt;Button
+                Margin="0,0,8,0"
+                Command="{Binding DeleteCommand}"
+                Content="Supprimer"
+                Style="{StaticResource MaterialDesignOutlinedButton}" /&gt;
+            &lt;Button Command="{Binding SaveCommand}" Content="Enregistrer" /&gt;
+        &lt;/StackPanel&gt;
+
+        &lt;!-- En haut : la date d'enregistrement --&gt;
+        &lt;TextBlock
+            Margin="0,0,0,8"
+            DockPanel.Dock="Top"
+            FontSize="12"
+            Opacity="0.7"
+            Text="{Binding DateText}" /&gt;
+
+        &lt;!-- Au centre : le texte, relié dans les deux sens à la propriété Text du ViewModel --&gt;
+        &lt;TextBox
+            VerticalContentAlignment="Top"
+            materialDesign:HintAssist.Hint="Votre note"
+            AcceptsReturn="True"
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+            Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+            TextWrapping="Wrap"
+            VerticalScrollBarVisibility="Auto" /&gt;
+    &lt;/DockPanel&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        <ol>
+          <li>Clique sur «&nbsp;+&nbsp;»&nbsp;: Supprimer est grisé. Clique sur Annuler.</li>
+          <li>Ouvre une note existante&nbsp;: Supprimer est actif. Clique dessus&nbsp;: la boîte de confirmation apparaît.</li>
+          <li>Dans la boîte, clique sur Annuler&nbsp;: rien n'est supprimé, la note reste affichée.</li>
+          <li>Clique à nouveau sur Supprimer, puis confirme&nbsp;: «&nbsp;Note supprimée&nbsp;» s'affiche, tu reviens à la
+            liste, et la carte a disparu.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="bilan">
+    <div class="part-head"><div class="part-num">3</div><h2>Bilan des notions vues</h2></div>
+    <div class="prose">
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Notion</th><th>Étape</th><th>Rôle dans le TP</th></tr></thead>
+          <tbody>
+            <tr><td>Messenger</td><td class="step">1</td><td>Faire communiquer des ViewModels qui ne se connaissent pas.</td></tr>
+            <tr><td>Classe de message</td><td class="step">1</td><td><code>NoteSavedMessage</code>&nbsp;: transporte la note concernée.</td></tr>
+            <tr><td>ObservableRecipient</td><td class="step">1</td><td>Un ViewModel qui reçoit des messages.</td></tr>
+            <tr><td>IRecipient&lt;T&gt;</td><td class="step">1</td><td>Une interface générique, réalisée une fois par type de message.</td></tr>
+            <tr><td>: base(…)</td><td class="step">1</td><td>Appeler le constructeur de la classe parente.</td></tr>
+            <tr><td>Task&lt;bool&gt;</td><td class="step">2</td><td>Une réponse qui arrivera plus tard.</td></tr>
+            <tr><td>async Task</td><td class="step">2</td><td>Une méthode asynchrone que l'appelant peut attendre.</td></tr>
+            <tr><td>CanExecute</td><td class="step">2</td><td>La commande grise elle-même le bouton quand elle ne peut pas s'exécuter.</td></tr>
+            <tr><td>nameof</td><td class="step">2</td><td>Le nom d'un membre, vérifié par le compilateur.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="git">
+    <div class="part-head"><div class="part-num">4</div><h2>Fin de sprint&nbsp;: commit &amp; tag</h2></div>
+    <div class="prose">
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine de la solution</div>
+  <div class="code-wrap"><pre class="code">git add .
+git commit -m "Sprint 6 : supprimer avec confirmation, et prévenir la liste par messages"
+git tag sprint-06</pre></div>
+</div>
+      <p>
+        Le dépôt de référence <code>NoteApp</code> contient ce même état au tag <code>sprint-06</code> de la branche
+        <code>main</code>.
+      </p>
+      <p class="sprintnav"><a href="../sprint-05/guide-sprint-05.html">← Sprint 5 — Éditer une note</a><a href="../sprint-07/guide-sprint-07.html">Sprint 7 — Injection de dépendances →</a></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>NoteApp · Version MVVM — Guide TP sprint 6, supprimer et prévenir la liste</p>
+  </footer>
+
+</div>

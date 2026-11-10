@@ -1,0 +1,64 @@
+// NoteApp/Sprint 7 - Injection de dépendances : quiz de validation (10 questions, QCM à réponse unique, sans pénalité)
+// Import Moodle : Banque de questions > Importer > format GIFT, encodage UTF-8
+
+$CATEGORY: NoteApp/Sprint 7 - Injection de dépendances
+
+::S7-01 [facile]:: [plain]Quel est le rôle d'un conteneur d'injection de dépendances ? {
+~Stocker les notes de l'application en mémoire. #C'est le travail d'IFileService, pas du conteneur.
+=Créer et assembler les objets à partir des enregistrements. #Exact \: il lit les constructeurs et fournit à chaque objet ce qu'il attend.
+~Afficher les fenêtres de l'application, dans l'ordre où on les a déclarées. #Il crée la fenêtre quand on la lui demande, mais l'afficher reste le rôle de Show().
+}
+
+::S7-02 [facile]:: [plain]Quel est l'équivalent Laravel de services.AddSingleton<IFileService, FileService>() ? {
+~Route\:\:get('/notes', [NoteController\:\:class, 'index']); #C'est une déclaration de route, sans rapport avec le conteneur.
+~Schema\:\:create('notes', ...); #C'est une migration de base de données.
+=$this->app->singleton(FileServiceInterface\:\:class, FileService\:\:class); #Exact \: dans un service provider, on enregistre la réalisation d'un contrat.
+}
+
+::S7-03 [moyen]:: [plain]Que signifie AddSingleton pour un service ? {
+=Un seul objet pour toute l'application, créé à la première demande puis réutilisé. #Exact \: tous ceux qui demandent ce service reçoivent le même objet.
+~Un objet neuf à chaque demande. #C'est le comportement d'AddTransient.
+~Un objet créé dès l'appel à BuildServiceProvider, même si personne ne le demande. #Un singleton est créé à la première demande, pas avant.
+}
+
+::S7-04 [moyen]:: [plain]Pourquoi la SnackbarMessageQueue est-elle enregistrée avec un objet déjà créé ? {
+~Parce que les classes de MaterialDesign ne peuvent pas être créées par un conteneur. #Le conteneur pourrait en créer ; il ne saurait simplement pas quoi passer au constructeur.
+=Parce que le conteneur ne saurait pas quelle durée d'affichage passer à son constructeur. #Exact \: on crée l'objet nous-mêmes, avec TimeSpan.FromSeconds(2), et on le confie au conteneur.
+~Pour que chaque fenêtre reçoive sa propre file de messages. #C'est l'inverse \: il n'y a qu'une file, partagée par la fenêtre et NotificationService.
+}
+
+::S7-05 [moyen]:: [plain]Comment le conteneur sait-il de quoi MainViewModel a besoin ? {
+~Grâce à un attribut [Inject] placé devant chaque paramètre. #Aucun attribut n'est nécessaire dans NoteApp.
+~Grâce à un fichier de configuration qui liste les dépendances. #Les dépendances ne sont décrites nulle part ailleurs que dans le constructeur.
+=En lisant les paramètres de son constructeur. #Exact \: comme le conteneur de Laravel, il fournit un objet enregistré pour chaque type de paramètre.
+}
+
+::S7-06 [moyen]:: [plain]Dans quel projet installe-t-on le package Microsoft.Extensions.DependencyInjection ? {
+=Dans WpfNotes seulement. #Exact \: seul l'assemblage, dans App, connaît le conteneur. Les classes de WpfNotes.Core reçoivent leurs dépendances sans savoir qui les fournit.
+~Dans WpfNotes.Core, puisque c'est là que vivent les services. #Les services n'ont pas besoin du conteneur \: ils reçoivent tout par leur constructeur.
+~Dans les deux projets, sinon la compilation échoue. #La bibliothèque n'utilise aucun type du conteneur \: elle n'en a pas besoin.
+}
+
+::S7-07 [moyen]:: [plain]Dans AddSingleton<IFileService, FileService>(), que passe-t-on entre les chevrons ? {
+~Deux valeurs \: un objet IFileService et un objet FileService. #Aucun objet n'est passé \: le conteneur créera lui-même le FileService.
+=Deux types \: c'est une méthode générique. #Exact \: comme List<Note>, mais pour une méthode.
+~Deux noms de fichiers, où le conteneur cherchera les classes. #Le conteneur travaille avec des types, pas avec des fichiers.
+}
+
+::S7-08 [difficile]:: [plain]Au lancement, l'application s'arrête sur \: « Unable to resolve service for type 'INotificationService' while attempting to activate 'MainViewModel' ». Que faut-il comprendre ? {
+~Que MainViewModel n'a pas été enregistré dans le conteneur. #MainViewModel est trouvé \: c'est en le créant que le conteneur bute.
+=Qu'aucun service n'est enregistré pour INotificationService. #Exact \: le constructeur de MainViewModel le demande. Le second nom dit qui demande, le premier ce qui manque.
+~Que la classe NotificationService contient une erreur de compilation. #Une erreur de compilation empêcherait de lancer l'application.
+}
+
+::S7-09 [moyen]:: [plain]Entre le sprint 6 et le sprint 7, quels fichiers ont été modifiés ? {
+~Tous les ViewModels, pour qu'ils utilisent le conteneur. #Aucun ViewModel ne connaît le conteneur.
+~Toutes les vues, pour recevoir leur DataContext du conteneur. #Les vues n'ont pas changé.
+=Seulement App.xaml.cs et WpfNotes.csproj. #Exact \: on a changé qui fournit les objets, sans toucher à ceux qui les utilisent.
+}
+
+::S7-10 [difficile]:: [plain]Pourquoi NoteViewModel n'est-il pas enregistré dans le conteneur ? {
+=Parce que MainViewModel le crée lui-même, pour chaque note. #Exact \: c'est le compromis du sprint 5, où MainViewModel joue le rôle de la navigation.
+~Parce que le conteneur ne sait pas créer de ViewModels. #Il crée bien MainViewModel.
+~Parce qu'un ViewModel est toujours transient, sans enregistrement. #Rien n'est automatique \: tout ce que le conteneur crée doit être enregistré.
+}

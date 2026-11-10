@@ -1,0 +1,64 @@
+// NoteApp/Sprint 6 - Supprimer et prévenir la liste : quiz de validation (10 questions, QCM à réponse unique, sans pénalité)
+// Import Moodle : Banque de questions > Importer > format GIFT, encodage UTF-8
+
+$CATEGORY: NoteApp/Sprint 6 - Supprimer et prévenir la liste
+
+::S6-01 [facile]:: [plain]À quoi sert le Messenger du MVVM Toolkit dans NoteApp ? {
+=À faire communiquer des ViewModels qui ne se connaissent pas. #Exact \: NoteViewModel envoie un message, AllNotesViewModel le reçoit, sans lien direct entre eux.
+~À afficher les messages « Note enregistrée » en bas de la fenêtre. #C'est le rôle de INotificationService et du Snackbar.
+~À enregistrer les notes dans des fichiers. #C'est le rôle de IFileService.
+}
+
+::S6-02 [facile]:: [plain]À quel mécanisme de Laravel le Messenger ressemble-t-il le plus ? {
+~Aux middlewares, qui filtrent les requêtes HTTP. #Un middleware s'intercale dans le traitement d'une requête ; il ne diffuse pas d'annonce.
+=Aux événements et à leurs listeners. #Exact \: event(new NoteSaved($note)) et un listener qui réagit, sans que l'émetteur le connaisse.
+~Aux migrations, qui modifient la base de données. #Rien à voir \: une migration décrit la structure de la base.
+}
+
+::S6-03 [moyen]:: [plain]Pourquoi AllNotesViewModel hérite-t-il d'ObservableRecipient ? {
+~Pour pouvoir envoyer des messages aux autres ViewModels. #Envoyer ne demande qu'un IMessenger ; c'est pour recevoir qu'on utilise ObservableRecipient.
+~Pour pouvoir déclarer des commandes avec [RelayCommand]. #[RelayCommand] fonctionne dans n'importe quelle classe partial.
+=Pour recevoir des messages. #Exact \: la classe garde le Messenger et s'abonne quand IsActive passe à true. C'est un ObservableObject qui sait en plus recevoir des messages.
+}
+
+::S6-04 [moyen]:: [plain]AllNotesViewModel réalise IRecipient<NoteSavedMessage> et IRecipient<NoteDeletedMessage>. Que doit-il fournir ? {
+=Une méthode Receive pour chacun des deux types de messages. #Exact \: chaque IRecipient<T> impose une méthode Receive(T message).
+~Une seule méthode Receive(object message), pour tous les messages. #Chaque interface impose une méthode avec le bon type de paramètre.
+~Rien \: le Toolkit génère les méthodes Receive. #Le Toolkit ne génère rien ici \: c'est toi qui écris la réaction à chaque message.
+}
+
+::S6-05 [moyen]:: [plain]Dans le constructeur d'AllNotesViewModel, que fait \: base(messenger) ? {
+~Il crée un nouveau Messenger, propre à la liste, pour ne pas mélanger les messages. #Rien n'est créé \: on transmet celui qui a été reçu.
+=Il transmet le Messenger au constructeur de la classe parente. #Exact \: comme parent\:\:__construct en PHP. ObservableRecipient a besoin du Messenger pour s'abonner.
+~Il fait hériter la classe d'une classe nommée base. #base désigne la classe parente déjà déclarée, ici ObservableRecipient.
+}
+
+::S6-06 [moyen]:: [plain]Pourquoi ConfirmAsync renvoie-t-elle une Task<bool> plutôt qu'un simple bool ? {
+~Parce qu'une interface ne peut pas déclarer de méthode qui renvoie un bool. #Une interface peut renvoyer n'importe quel type.
+~Parce qu'une Task<bool> est plus rapide à calculer qu'un bool. #La raison n'est pas la vitesse, mais le moment où la réponse arrive.
+=Parce que la réponse n'arrive que lorsque l'utilisateur clique, plus tard. #Exact \: la tâche donnera le bool à ce moment-là, sans geler la fenêtre.
+}
+
+::S6-07 [facile]:: [plain]Pour une note neuve, pourquoi le bouton Supprimer est-il grisé ? {
+=Parce que CanDelete renvoie false, et que la commande désactive elle-même le bouton. #Exact \: la règle vit dans le ViewModel, où un test peut la vérifier.
+~Parce que NoteView met IsEnabled à false dans son code-behind. #Le code-behind de NoteView ne contient que InitializeComponent().
+~Parce que DialogService refuse d'ouvrir la boîte de dialogue. #La boîte n'est même pas demandée \: la commande ne peut pas s'exécuter.
+}
+
+::S6-08 [moyen]:: [plain]Dans [RelayCommand(CanExecute \= nameof(CanDelete))], que donne nameof(CanDelete) ? {
+~Le résultat de l'appel à CanDelete(), true ou false. #nameof n'appelle rien \: il donne un nom.
+=Le texte "CanDelete", vérifié par le compilateur. #Exact \: une faute de frappe dans le nom serait signalée à la compilation.
+~Une nouvelle commande nommée CanDeleteCommand. #Aucune commande n'est créée pour CanDelete.
+}
+
+::S6-09 [difficile]:: [plain]Pourquoi DeleteAsync renvoie-t-elle une Task, et non void comme le DeleteButton_Click du sprint 3 ? {
+~Parce que async void est interdit en C\#. #async void est permis, mais réservé aux gestionnaires d'événements.
+~Parce qu'une méthode qui renvoie Task s'exécute plus vite qu'une méthode void. #La vitesse n'est pas en cause.
+=Parce que la commande, et un test, doivent pouvoir attendre sa fin. #Exact \: ce n'est pas un gestionnaire d'événement. Au sprint 8, un test écrira await DeleteCommand.ExecuteAsync(null).
+}
+
+::S6-10 [difficile]:: [plain]Que doivent partager NoteViewModel et AllNotesViewModel pour que les messages arrivent ? {
+=Le même objet Messenger. #Exact \: MainViewModel reçoit le Messenger et le transmet aux deux. Avec deux Messengers différents, rien n'arriverait.
+~Le même objet Note. #La note voyage dans le message ; elle n'est pas le canal.
+~Le même DataContext. #Le DataContext concerne les vues ; les ViewModels communiquent par le Messenger.
+}

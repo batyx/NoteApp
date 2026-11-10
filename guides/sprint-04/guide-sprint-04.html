@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteApp — Sprint 4, séparer la logique de l'interface</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+:root{
+  --bg:#f5f3fa;
+  --surface:#ffffff;
+  --surface-2:#efebf8;
+  --ink:#211b34;
+  --ink-soft:#4a4360;
+  --muted:#726b8c;
+  --accent:#4c2d84;
+  --accent-strong:#341f5c;
+  --accent-tint:#eae3f8;
+  --lime:#5c8a29;
+  --lime-tint:#e9f3da;
+  --line:#e1dbf0;
+  --code-bg:#1e1b2b;
+  --code-header:#171420;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#9b7ee8;
+  --danger:#a6192e;
+  --danger-tint:#fbe7ea;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(33,27,52,.06), 0 8px 24px -12px rgba(33,27,52,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121f;
+    --surface:#1c1830;
+    --surface-2:#241f3d;
+    --ink:#efe9fb;
+    --ink-soft:#cabfe6;
+    --muted:#9186ad;
+    --accent:#b394f0;
+    --accent-strong:#d6c2ff;
+    --accent-tint:#2c2350;
+    --lime:#a5d66b;
+    --lime-tint:#26301c;
+    --line:#332a52;
+    --code-bg:#100e1a;
+    --code-header:#0b0a13;
+    --code-fg:#e8e3f5;
+    --code-muted:#8b83a8;
+    --code-accent:#b394f0;
+    --danger:#ff8fa3;
+    --danger-tint:#3a1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121f;
+  --surface:#1c1830;
+  --surface-2:#241f3d;
+  --ink:#efe9fb;
+  --ink-soft:#cabfe6;
+  --muted:#9186ad;
+  --accent:#b394f0;
+  --accent-strong:#d6c2ff;
+  --accent-tint:#2c2350;
+  --lime:#a5d66b;
+  --lime-tint:#26301c;
+  --line:#332a52;
+  --code-bg:#100e1a;
+  --code-header:#0b0a13;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#b394f0;
+  --danger:#ff8fa3;
+  --danger-tint:#3a1b23;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.62;
+}
+h1,h2,h3,h4{
+  font-family:"Barlow Semi Condensed","Segoe UI",sans-serif;
+  font-weight:700;color:var(--ink);text-wrap:balance;margin:0;
+}
+code, pre, .mono{font-family:"JetBrains Mono",Consolas,monospace;}
+::selection{background:var(--accent-tint);}
+a{color:var(--accent);}
+p{margin:0 0 14px;}
+p:last-child{margin-bottom:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:840px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14.5px;
+  letter-spacing:.02em;white-space:nowrap;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+.pillnav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.pillnav::-webkit-scrollbar{display:none;}
+.pillnav a{
+  flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:6px 9px;border-radius:999px;border:1px solid transparent;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.pillnav a:hover{background:var(--surface-2);color:var(--ink);}
+
+.container{max-width:840px;margin:0 auto;padding:0 24px;}
+.prose{max-width:680px;}
+
+/* ---------- Header ---------- */
+.pageintro{padding:44px 0 8px;}
+.eyebrow{
+  font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px;
+}
+.pageintro h1{font-size:clamp(27px,4vw,38px);line-height:1.08;max-width:22ch;margin-bottom:14px;}
+.pageintro p.lede{max-width:62ch;color:var(--ink-soft);font-size:16.5px;}
+
+.metastrip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;margin:28px 0 40px;
+}
+.metacell{background:var(--surface);padding:13px 16px;}
+.metacell .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.metacell .val{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);}
+@media (max-width:640px){.metastrip{grid-template-columns:1fr 1fr;}}
+
+/* ---------- Part sections ---------- */
+.part{scroll-margin-top:64px;padding:6px 0 46px;border-bottom:1px solid var(--line);}
+.part:last-of-type{border-bottom:none;}
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.part-num{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;
+  color:var(--surface);background:var(--accent);
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.part-head h2{font-size:23px;}
+.part-sub{margin:0 0 18px 44px;color:var(--muted);font-size:14.5px;}
+.part > .prose > h3{font-size:16.5px;margin:28px 0 10px;color:var(--ink);}
+.part > .prose > h3:first-child{margin-top:0;}
+
+/* ---------- Recurring blocks ---------- */
+.tagline{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 0;margin-bottom:8px;
+}
+.concept{
+  background:var(--accent-tint);border-radius:0 8px 8px 0;border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.concept .tagline{color:var(--accent-strong);}
+.concept b{color:var(--ink);}
+
+.explain{
+  background:var(--surface-2);border-radius:8px;padding:14px 18px;margin:0 0 16px;
+  font-size:14.5px;color:var(--ink-soft);
+}
+.explain .tagline{color:var(--muted);}
+.explain code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.92em;color:var(--ink);}
+.explain b{color:var(--ink);}
+.explain ul,.explain ol{margin:8px 0 0;padding-left:20px;}
+.explain li{margin-bottom:6px;}
+.explain li:last-child{margin-bottom:0;}
+
+.watch{
+  border-left:3px solid var(--danger);background:var(--danger-tint);border-radius:0 8px 8px 0;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-soft);
+}
+.watch .tagline{color:var(--danger);}
+.watch b{color:var(--ink);}
+.watch code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+
+.checkpoint{
+  border:1px dashed var(--lime);border-radius:8px;padding:14px 18px;margin:20px 0 0;
+  background:var(--lime-tint);font-size:14.5px;color:var(--ink-soft);
+}
+.checkpoint .tagline{color:var(--lime);}
+.checkpoint b{color:var(--ink);}
+.checkpoint code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+.checkpoint ol{margin:8px 0 0;padding-left:20px;}
+.checkpoint li{margin-bottom:5px;}
+
+p code, li code, .prose > p code{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-size:.9em;color:var(--accent-strong);font-weight:500;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block{border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:14px 0 16px;box-shadow:var(--shadow);}
+.code-file{
+  background:var(--code-header);color:var(--code-muted);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;padding:8px 14px;display:flex;align-items:center;gap:8px;
+}
+.code-file i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.code-file i.cs{background:var(--code-accent);}
+.code-file i.xaml{background:#e8a04e;}
+.code-file i.cfg{background:var(--lime);}
+.code-file i.new{background:var(--lime);}
+.code-wrap{background:var(--code-bg);overflow-x:auto;}
+pre.code{margin:0;padding:15px 16px;font-family:"JetBrains Mono",monospace;font-size:12.6px;line-height:1.62;color:var(--code-fg);white-space:pre;tab-size:4;}
+
+/* ---------- Diagram ---------- */
+.diagram{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:14px;margin:14px 0 16px;box-shadow:var(--shadow);}
+.diagram svg{width:100%;height:auto;display:block;}
+
+.recap{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;}
+.recap th,.recap td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+.recap th{background:var(--surface-2);font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;}
+.recap-wrap{overflow-x:auto;border-radius:8px;}
+.recap td:first-child{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+.recap td.step{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;color:var(--muted);white-space:nowrap;}
+
+footer{padding:24px 0 60px;}
+footer p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ---------- Depuis PHP (pont avec ce que les étudiants connaissent) ---------- */
+.bridge{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lime);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.bridge .tagline{color:var(--lime);}
+.bridge b{color:var(--ink);}
+.bridge p code,.bridge li code{color:var(--ink);}
+.bridge ul{margin:8px 0 0;padding-left:20px;}
+.bridge li{margin-bottom:5px;}
+.bridge .code-block{margin:10px 0 0;box-shadow:none;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare .code-block{margin:0;}
+@media (max-width:700px){.compare{grid-template-columns:1fr;}}
+.code-file i.php{background:#8892bf;}
+
+/* ---------- Navigation entre sprints ---------- */
+.sprintnav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font-size:14px;}
+.sprintnav a{text-decoration:none;font-weight:600;}
+.compare pre.code{font-size:11.2px;padding:12px 12px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand"><span class="dot"></span>NoteApp · Guide TP MVVM</span>
+    <nav class="pillnav" aria-label="Navigation des parties">
+      <a href="#depart">Départ</a>
+      <a href="#mvvm">MVVM</a>
+      <a href="#etape1">Étape 1</a>
+      <a href="#etape2">Étape 2</a>
+      <a href="#etape3">Étape 3</a>
+      <a href="#etape4">Étape 4</a>
+      <a href="#bilan">Bilan</a>
+      <a href="#git">Git</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <header class="pageintro">
+    <p class="eyebrow">NoteApp · Version MVVM · Sprint 4 (1 sur 5)</p>
+    <h1>Séparer la logique de l'interface</h1>
+    <p class="lede">
+      La version code-behind fonctionne, mais sa logique est prisonnière des écrans&nbsp;: impossible de la tester.
+      Ce sprint repart d'une nouvelle solution à deux projets. La logique de la liste s'installe dans une
+      bibliothèque qui ne connaît pas WPF, et l'écran se contente d'afficher ce qu'elle lui donne.
+    </p>
+    <div class="metastrip">
+      <div class="metacell"><div class="lbl">Point de départ</div><div class="val">nouvelle solution</div></div>
+      <div class="metacell"><div class="lbl">Point d'arrivée</div><div class="val">tag sprint-04</div></div>
+      <div class="metacell"><div class="lbl">Projets</div><div class="val">WpfNotes, WpfNotes.Core</div></div>
+      <div class="metacell"><div class="lbl">Premier ViewModel</div><div class="val">AllNotesViewModel</div></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <section class="part" id="depart">
+    <div class="part-head"><div class="part-num">0</div><h2>Où en est-on&nbsp;? Que va-t-on faire&nbsp;?</h2></div>
+    <div class="prose">
+      <p>
+        À la fin de la version code-behind (sprint 3), NoteApp affiche, crée, enregistre et supprime des notes. Mais
+        en essayant de tester la suppression, on a relevé des obstacles qui ont tous la même cause&nbsp;: la logique
+        est mélangée avec l'interface et avec le disque. Les cinq sprints de la version MVVM les lèvent un par un.
+      </p>
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Obstacle relevé au sprint 3</th><th>Levé au sprint</th></tr></thead>
+          <tbody>
+            <tr><td>La logique vit dans les écrans</td><td>4 (la liste), 5 et 6 (une note)</td></tr>
+            <tr><td>Accès direct au disque</td><td>4 — <code>IFileService</code></td></tr>
+            <tr><td>Navigation par la fenêtre</td><td>5 — <code>INavigationService</code></td></tr>
+            <tr><td>Snackbar et DialogHost appelés directement</td><td>5 et 6 — <code>INotificationService</code>, <code>IDialogService</code></td></tr>
+            <tr><td>Objets créés avec new partout</td><td>7 — injection de dépendances</td></tr>
+            <tr><td>Aucun test possible</td><td>8 — tests unitaires</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        L'interface reste celle de la version code-behind&nbsp;: une liste de cartes, et un écran par note avec les
+        boutons Annuler, Supprimer et Enregistrer. Seule l'organisation du code change.
+      </p>
+      <p>Pour ce sprint&nbsp;: quatre étapes.</p>
+      <div class="explain">
+        <ul>
+          <li><b>Étape 1</b> — créer une solution à deux projets&nbsp;: l'application WPF, et une bibliothèque pour la logique.</li>
+          <li><b>Étape 2</b> — écrire le modèle <code>Note</code> et le service de fichiers, derrière une interface.</li>
+          <li><b>Étape 3</b> — écrire le premier ViewModel&nbsp;: la logique de la liste.</li>
+          <li><b>Étape 4</b> — afficher la liste en reliant la vue au ViewModel.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="mvvm">
+    <div class="part-head"><div class="part-num">1</div><h2>MVVM en une page</h2></div>
+    <div class="prose">
+      <p>
+        <b>MVVM</b> (<em>Model – View – ViewModel</em>) range le code d'une application en trois rôles.
+      </p>
+      <div class="explain">
+        <ul>
+          <li>Le <b>modèle</b> (<em>Model</em>) — les données et les services qui les manipulent&nbsp;: la classe
+            <code>Note</code>, le service qui lit et écrit les fichiers.</li>
+          <li>La <b>vue</b> (<em>View</em>) — le XAML. Elle affiche et transmet les actions de l'utilisateur, sans
+            aucune logique.</li>
+          <li>Le <b>ViewModel</b> — la logique d'un écran, en C# ordinaire&nbsp;: quelles notes afficher, que faire
+            quand on clique sur Enregistrer. Il ne connaît <b>pas</b> la vue, et ne contient aucun type WPF.</li>
+        </ul>
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="La vue AllNotesView, dans le projet WpfNotes, lit le ViewModel AllNotesViewModel par Binding. Le ViewModel, dans le projet WpfNotes.Core, utilise l'interface IFileService, réalisée par FileService, qui lit le disque.">
+          <defs>
+            <marker id="s4-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" style="fill:var(--muted)" />
+            </marker>
+          </defs>
+          <rect x="16" y="20" width="170" height="210" rx="10" style="fill:none;stroke:var(--line)" stroke-width="1.2" stroke-dasharray="5 4" />
+          <text x="101" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--muted)">projet WpfNotes</text>
+          <rect x="216" y="20" width="408" height="210" rx="10" style="fill:none;stroke:var(--accent)" stroke-width="1.2" stroke-dasharray="5 4" />
+          <text x="420" y="40" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--accent-strong)">projet WpfNotes.Core — sans WPF</text>
+
+          <rect x="31" y="90" width="140" height="72" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="101" y="116" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--ink)">Vue</text>
+          <text x="101" y="136" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink-soft)">AllNotesView.xaml</text>
+          <text x="101" y="151" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">affiche</text>
+
+          <rect x="236" y="90" width="170" height="72" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.5" />
+          <text x="321" y="116" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--accent-strong)">ViewModel</text>
+          <text x="321" y="136" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink-soft)">AllNotesViewModel</text>
+          <text x="321" y="151" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">la logique de l'écran</text>
+
+          <rect x="446" y="62" width="160" height="56" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="526" y="86" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="14" style="fill:var(--ink)">IFileService</text>
+          <text x="526" y="104" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">le contrat</text>
+          <rect x="446" y="150" width="160" height="56" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="526" y="174" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="14" style="fill:var(--ink)">FileService</text>
+          <text x="526" y="192" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">lit et écrit le disque</text>
+
+          <path d="M171 126 L232 126" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s4-arrow)" />
+          <text x="210" y="116" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="10" style="fill:var(--muted)">Binding</text>
+          <path d="M406 112 L442 96" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s4-arrow)" />
+          <text x="420" y="88" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" style="fill:var(--muted)">utilise</text>
+          <path d="M526 150 L526 122" fill="none" style="stroke:var(--muted)" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#s4-arrow)" />
+          <text x="534" y="140" font-family="JetBrains Mono, monospace" font-size="10" style="fill:var(--muted)">réalise</text>
+        </svg>
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — le ViewModel et le contrôleur Laravel</div>
+        Dans Laravel, le contrôleur prépare les données (<code>$notes = Note::latest()-&gt;get();</code>) et les passe
+        à la vue Blade, qui les affiche. Le ViewModel joue un rôle voisin&nbsp;: il prépare les données de l'écran.
+        Deux différences&nbsp;: la vue va <em>elle-même</em> chercher les données dans le ViewModel (c'est le
+        <b>Binding</b>), et elle reste reliée à lui tant que l'écran est affiché. Si une donnée change, l'écran se
+        met à jour, sans nouvelle requête.
+      </div>
+      <p>
+        Le ViewModel ne connaissant pas WPF, on peut le créer et l'utiliser dans un simple test, sans fenêtre.
+        C'est tout l'intérêt de la démarche, et l'objet du sprint 8.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape1">
+    <div class="part-head"><div class="part-num">2</div><h2>Étape 1 — Une solution, deux projets</h2></div>
+    <p class="part-sub">Bibliothèque de classes, référence de projet, la règle d'or.</p>
+    <div class="prose">
+
+      <h3>1.1 — Créer la solution et l'application</h3>
+      <div class="explain">
+        <div class="tagline">Étapes dans Visual Studio</div>
+        <ol>
+          <li>Fichier → Nouveau → Projet… → <b>Application WPF</b>, comme au sprint 1.</li>
+          <li>Nom du projet&nbsp;: <code>WpfNotes</code>. Nom de la solution&nbsp;: <code>NoteApp</code>. Emplacement&nbsp;:
+            un dossier <b>différent</b> de celui de la version code-behind. Case «&nbsp;Placer la solution et le projet
+            dans le même répertoire&nbsp;» décochée. Framework&nbsp;: .NET 10.0.</li>
+          <li>Installe le package NuGet <code>MaterialDesignThemes</code>, version <code>5.3.2</code>, dans ce projet.</li>
+        </ol>
+      </div>
+      <p>Configure le thème dans <code>App.xaml</code>, exactement comme au sprint 1&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/App.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Application
+    x:Class="WpfNotes.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    StartupUri="MainWindow.xaml"&gt;
+    &lt;Application.Resources&gt;
+        &lt;ResourceDictionary&gt;
+            &lt;ResourceDictionary.MergedDictionaries&gt;
+                &lt;materialDesign:BundledTheme
+                    BaseTheme="Light"
+                    PrimaryColor="DeepPurple"
+                    SecondaryColor="Lime" /&gt;
+                &lt;ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" /&gt;
+            &lt;/ResourceDictionary.MergedDictionaries&gt;
+        &lt;/ResourceDictionary&gt;
+    &lt;/Application.Resources&gt;
+&lt;/Application&gt;</pre></div>
+</div>
+
+      <h3>1.2 — Ajouter la bibliothèque <code>WpfNotes.Core</code></h3>
+      <div class="concept">
+        <div class="tagline">Notion — la bibliothèque de classes</div>
+        Une <b>bibliothèque de classes</b> est un projet qui ne se lance pas&nbsp;: il ne produit pas un programme,
+        mais un fichier <code>.dll</code> de classes, utilisables par d'autres projets. On y range toute la logique de
+        NoteApp&nbsp;: le modèle, les services et les ViewModels.
+      </div>
+      <div class="explain">
+        <div class="tagline">Étapes dans Visual Studio</div>
+        <ol>
+          <li>Clic droit sur la solution → Ajouter → Nouveau projet… → <b>Bibliothèque de classes</b> (C#).</li>
+          <li>Nom&nbsp;: <code>WpfNotes.Core</code>. Framework&nbsp;: .NET 10.0.</li>
+          <li>Supprime le fichier <code>Class1.cs</code> généré.</li>
+          <li>Clic droit sur le projet <code>WpfNotes</code> → Ajouter → Référence de projet… → coche
+            <code>WpfNotes.Core</code>.</li>
+        </ol>
+      </div>
+      <p>Les deux fichiers de projet doivent ressembler à ceci&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>WpfNotes.Core/WpfNotes.Core.csproj</div>
+  <div class="code-wrap"><pre class="code">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+  &lt;/PropertyGroup&gt;
+
+&lt;/Project&gt;</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>WpfNotes/WpfNotes.csproj</div>
+  <div class="code-wrap"><pre class="code">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+    &lt;TargetFramework&gt;net10.0-windows&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;UseWPF&gt;true&lt;/UseWPF&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="MaterialDesignThemes" Version="5.3.2" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;ProjectReference Include="..\WpfNotes.Core\WpfNotes.Core.csproj" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li>La bibliothèque n'a ni <code>OutputType</code> ni <code>UseWPF</code>&nbsp;: elle ne produit pas
+            d'exécutable, et ne compile pas de XAML.</li>
+          <li><code>ProjectReference</code> — l'application utilise la bibliothèque. La flèche ne va que dans un
+            sens&nbsp;: <code>WpfNotes.Core</code> ne connaît pas <code>WpfNotes</code>.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — la règle d'or&nbsp;: <code>net10.0</code> et non <code>net10.0-windows</code></div>
+        La bibliothèque cible <code>net10.0</code>, sans <code>-windows</code>. Elle n'a donc pas accès aux
+        bibliothèques propres à Windows&nbsp;: aucun type WPF ni MaterialDesign n'y compile. Si, par mégarde, tu
+        écris <code>MessageBox.Show(…)</code> dans un ViewModel, le compilateur refuse. La séparation entre logique et
+        interface n'est pas une bonne intention&nbsp;: c'est le compilateur qui la garantit.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — comme un package local</div>
+        C'est un peu comme découper une application Laravel en un package local (déclaré dans
+        <code>composer.json</code> avec un dépôt de type <code>path</code>)&nbsp;: un morceau de code autonome, que
+        l'application utilise, mais qui ne dépend pas d'elle.
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        La solution contient deux projets et compile. L'application affiche la fenêtre vide générée par Visual
+        Studio.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape2">
+    <div class="part-head"><div class="part-num">3</div><h2>Étape 2 — Le modèle et le service de fichiers</h2></div>
+    <p class="part-sub">Interface, implémentation, injection par le constructeur.</p>
+    <div class="prose">
+
+      <h3>2.1 — La classe <code>Note</code></h3>
+      <p>
+        Dans <code>WpfNotes.Core</code>, crée un dossier <code>Models</code> et la classe <code>Note</code>. C'est la même
+        qu'au sprint 2, dans un autre espace de noms&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/Models/Note.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">namespace WpfNotes.Core.Models;
+
+public class Note
+{
+    // Nom du fichier sur le disque. Vaut null tant que la note n'a jamais été enregistrée.
+    public string? Filename { get; set; }
+
+    // Le texte de la note
+    public string Text { get; set; } = "";
+
+    // Date du dernier enregistrement
+    public DateTime Date { get; set; }
+}</pre></div>
+</div>
+
+      <h3>2.2 — Le contrat&nbsp;: <code>IFileService</code></h3>
+      <p>
+        Dans la version code-behind, les écrans appelaient directement <code>File.WriteAllText</code>. Ici, le ViewModel
+        passera par un <b>service</b>&nbsp;: une classe dont le seul rôle est de lire et d'écrire les notes. Et il ne le
+        connaîtra qu'à travers une <b>interface</b>.
+      </p>
+      <div class="concept">
+        <div class="tagline">Notion — à quoi sert une interface&nbsp;?</div>
+        Une interface est un <b>contrat</b>&nbsp;: une liste de méthodes, sans leur code. Une classe qui la
+        «&nbsp;réalise&nbsp;» s'engage à fournir ces méthodes. Dans NoteApp, <code>IFileService</code> aura deux
+        réalisations&nbsp;:
+        <ul>
+          <li><code>FileService</code>, écrite juste après, qui range les notes dans des fichiers&nbsp;;</li>
+          <li><code>FakeFileService</code>, au sprint 8, qui les garde en mémoire pour les tests.</li>
+        </ul>
+        Ceux qui l'utilisent — <code>AllNotesViewModel</code> dans ce sprint, <code>NoteViewModel</code> au sprint 5 — ne
+        connaissent que le contrat. Ils fonctionnent avec l'une comme avec l'autre, sans changer une ligne&nbsp;: c'est
+        ce qui rendra les tests possibles.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — les interfaces, et les contracts de Laravel</div>
+        Les interfaces existent aussi en PHP (<code>interface FileServiceInterface</code>, puis
+        <code>class FileService implements FileServiceInterface</code>). Laravel s'en sert partout sous le nom de
+        <em>contracts</em>&nbsp;: le stockage de fichiers <code>Illuminate\Contracts\Filesystem\Filesystem</code> a une
+        réalisation pour le disque local, une autre pour Amazon S3… et ton code ne voit que le contrat. En C#, le nom
+        d'une interface commence par convention par un <code>I</code>&nbsp;: <code>IFileService</code>.
+      </div>
+      <p>Crée un dossier <code>Services</code> dans <code>WpfNotes.Core</code>, puis l'interface&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/Services/IFileService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Models;
+
+namespace WpfNotes.Core.Services;
+
+// Le contrat : ce que l'application sait faire avec les fichiers de notes.
+// Ceux qui l'utilisent ne savent pas où ni comment les notes sont rangées.
+public interface IFileService
+{
+    // Lit toutes les notes enregistrées
+    List&lt;Note&gt; GetNotes();
+
+    // Enregistre la note. Lui donne un nom de fichier si elle n'en a pas encore, et met sa date à jour.
+    void SaveNote(Note note);
+
+    // Supprime le fichier d'une note
+    void DeleteNote(string filename);
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>public interface IFileService</code> — un contrat de trois méthodes. Elles n'ont pas de corps&nbsp;:
+            seulement leur signature, terminée par <code>;</code>.</li>
+          <li><code>List&lt;Note&gt; GetNotes();</code> — renvoie une liste de notes, comme au sprint 3.</li>
+          <li>Pas de <code>public</code> devant les méthodes&nbsp;: dans une interface, elles le sont toutes.</li>
+        </ul>
+      </div>
+
+      <h3>2.3 — La réalisation&nbsp;: <code>FileService</code></h3>
+      <p>Le code de lecture et d'écriture de la version code-behind se range maintenant dans une seule classe&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/Services/FileService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Models;
+
+namespace WpfNotes.Core.Services;
+
+// L'implémentation réelle du contrat : les notes sont des fichiers .txt sur le disque.
+public class FileService : IFileService
+{
+    // Dossier où sont rangées les notes, par exemple C:\Users\toi\AppData\Local\WpfNotes\Notes
+    private readonly string _folder;
+
+    public FileService()
+    {
+        _folder = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "WpfNotes",
+            "Notes");
+    }
+
+    public List&lt;Note&gt; GetNotes()
+    {
+        Directory.CreateDirectory(_folder);
+
+        List&lt;Note&gt; notes = new List&lt;Note&gt;();
+        string[] paths = Directory.GetFiles(_folder, "*.txt");
+        foreach (string path in paths)
+        {
+            Note note = new Note();
+            note.Filename = Path.GetFileName(path);
+            note.Text = File.ReadAllText(path);
+            note.Date = File.GetLastWriteTime(path);
+            notes.Add(note);
+        }
+        return notes;
+    }
+
+    public void SaveNote(Note note)
+    {
+        // Première sauvegarde : choisir un nom de fichier unique
+        if (note.Filename == null)
+        {
+            note.Filename = "note-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".txt";
+        }
+
+        Directory.CreateDirectory(_folder);
+        string path = Path.Combine(_folder, note.Filename);
+        File.WriteAllText(path, note.Text);
+        note.Date = File.GetLastWriteTime(path);
+    }
+
+    public void DeleteNote(string filename)
+    {
+        string path = Path.Combine(_folder, filename);
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>public class FileService : IFileService</code> — le <code>:</code> sert aussi à indiquer qu'une classe
+            réalise une interface, là où PHP écrit <code>implements</code>. Le compilateur vérifie que les trois
+            méthodes du contrat sont bien présentes, avec la même signature.</li>
+          <li><code>_folder</code> — le dossier des notes, calculé une fois dans le constructeur. Ce n'est plus un champ
+            <code>static</code> de la fenêtre&nbsp;: c'est un détail interne du service, que personne d'autre n'a besoin
+            de connaître.</li>
+          <li><code>GetNotes</code>, <code>SaveNote</code> et <code>DeleteNote</code> reprennent le code des sprints 2
+            et 3. <code>return notes;</code> renvoie la liste à l'appelant.</li>
+        </ul>
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — ici, pas besoin de <code>using System.IO;</code></div>
+        Dans une bibliothèque de classes, <code>System.IO</code> fait partie des <code>using</code> ajoutés
+        automatiquement, contrairement à un projet WPF. <code>Path</code>, <code>File</code> et <code>Directory</code>
+        sont donc disponibles sans rien ajouter.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape3">
+    <div class="part-head"><div class="part-num">4</div><h2>Étape 3 — Le premier ViewModel&nbsp;: la liste</h2></div>
+    <p class="part-sub">ObservableCollection, propriété en lecture seule, dépendance reçue par le constructeur.</p>
+    <div class="prose">
+      <p>Crée un dossier <code>ViewModels</code> dans <code>WpfNotes.Core</code>, puis la classe&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/ViewModels/AllNotesViewModel.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using System.Collections.ObjectModel;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// La logique de l'écran « liste des notes », sans aucun lien avec WPF
+public class AllNotesViewModel
+{
+    private readonly IFileService _fileService;
+
+    public AllNotesViewModel(IFileService fileService)
+    {
+        _fileService = fileService;
+    }
+
+    // Les notes affichées par la vue, la plus récente en premier
+    public ObservableCollection&lt;Note&gt; Notes { get; } = new ObservableCollection&lt;Note&gt;();
+
+    // Lit les notes et remplit la collection
+    public void LoadNotes()
+    {
+        List&lt;Note&gt; notes = _fileService.GetNotes();
+        List&lt;Note&gt; sortedNotes = notes.OrderByDescending(note =&gt; note.Date).ToList();
+
+        Notes.Clear();
+        foreach (Note note in sortedNotes)
+        {
+            Notes.Add(note);
+        }
+    }
+}</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — recevoir ses dépendances par le constructeur</div>
+        <code>AllNotesViewModel</code> a besoin d'un service de fichiers, mais il ne le crée pas lui-même&nbsp;: il le
+        <b>reçoit</b> dans son constructeur. Et le type du paramètre est l'interface <code>IFileService</code>, pas la
+        classe <code>FileService</code>&nbsp;: le ViewModel ne sait pas quelle réalisation il utilise. C'est celui qui
+        crée le ViewModel qui choisit&nbsp;: <code>FileService</code> dans l'application, <code>FakeFileService</code>
+        dans les tests.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — l'injection dans les contrôleurs Laravel</div>
+        C'est ce que tu fais dans un contrôleur Laravel quand tu écris
+        <code>public function __construct(private NoteRepositoryInterface $notes)</code>&nbsp;: le contrôleur reçoit ce
+        dont il a besoin, au lieu de le construire. Laravel remplit le paramètre automatiquement. Ici, pour l'instant,
+        c'est nous qui le ferons, à la main, à l'étape 4. L'automatisme viendra au sprint 7.
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — <code>ObservableCollection</code>, une liste qui prévient</div>
+        Une <code>List&lt;Note&gt;</code> ne prévient personne quand on lui ajoute ou retire un élément. Une
+        <code>ObservableCollection&lt;Note&gt;</code>, si&nbsp;: elle déclenche un événement à chaque changement, et
+        l'écran qui l'affiche se met à jour tout seul. C'est le type à utiliser pour toute collection affichée par une
+        vue. Elle se trouve dans l'espace de noms <code>System.Collections.ObjectModel</code>, d'où le <code>using</code>
+        en haut du fichier.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>public ObservableCollection&lt;Note&gt; Notes { get; } = new ObservableCollection&lt;Note&gt;();</code> —
+            une propriété en <b>lecture seule</b> (<code>get</code> sans <code>set</code>), initialisée avec une
+            collection vide. La vue lira cette propriété.</li>
+          <li><code>LoadNotes()</code> — demande les notes au service, les trie (comme au sprint 3), puis vide et
+            remplit la collection. Chaque <code>Notes.Add(…)</code> fait apparaître une carte.</li>
+          <li>Aucun <code>using System.Windows</code>, aucun contrôle, aucune fenêtre&nbsp;: ce ViewModel est du C#
+            ordinaire.</li>
+        </ul>
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (Ctrl+Maj+B)</div>
+        La solution compile. Rien de visible pour l'instant&nbsp;: personne n'utilise encore le ViewModel.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape4">
+    <div class="part-head"><div class="part-num">5</div><h2>Étape 4 — Relier la vue au ViewModel</h2></div>
+    <p class="part-sub">DataContext, Binding vers le ViewModel, déclencheur de style.</p>
+    <div class="prose">
+
+      <h3>4.1 — La vue de la liste</h3>
+      <p>
+        Dans le projet <code>WpfNotes</code>, crée un dossier <code>Views</code> et un contrôle utilisateur
+        <code>AllNotesView.xaml</code>&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/Views/AllNotesView.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.Views.AllNotesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;Grid&gt;
+        &lt;ScrollViewer VerticalScrollBarVisibility="Auto"&gt;
+            &lt;!-- La collection Notes du ViewModel, une carte par note --&gt;
+            &lt;ItemsControl Margin="8" ItemsSource="{Binding Notes}"&gt;
+
+                &lt;ItemsControl.ItemsPanel&gt;
+                    &lt;ItemsPanelTemplate&gt;
+                        &lt;WrapPanel /&gt;
+                    &lt;/ItemsPanelTemplate&gt;
+                &lt;/ItemsControl.ItemsPanel&gt;
+
+                &lt;ItemsControl.ItemTemplate&gt;
+                    &lt;DataTemplate&gt;
+                        &lt;materialDesign:Card
+                            Width="220"
+                            Height="160"
+                            Margin="8"
+                            Padding="16"&gt;
+                            &lt;DockPanel&gt;
+                                &lt;TextBlock
+                                    DockPanel.Dock="Bottom"
+                                    FontSize="12"
+                                    Opacity="0.7"
+                                    Text="{Binding Date, StringFormat='dd/MM/yyyy HH:mm'}" /&gt;
+                                &lt;TextBlock
+                                    Text="{Binding Text}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="Wrap" /&gt;
+                            &lt;/DockPanel&gt;
+                        &lt;/materialDesign:Card&gt;
+                    &lt;/DataTemplate&gt;
+                &lt;/ItemsControl.ItemTemplate&gt;
+
+            &lt;/ItemsControl&gt;
+        &lt;/ScrollViewer&gt;
+
+        &lt;!-- Visible seulement quand la collection est vide --&gt;
+        &lt;TextBlock
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Opacity="0.7"
+            Text="Aucune note."&gt;
+            &lt;TextBlock.Style&gt;
+                &lt;Style TargetType="TextBlock"&gt;
+                    &lt;Setter Property="Visibility" Value="Collapsed" /&gt;
+                    &lt;Style.Triggers&gt;
+                        &lt;DataTrigger Binding="{Binding Notes.Count}" Value="0"&gt;
+                            &lt;Setter Property="Visibility" Value="Visible" /&gt;
+                        &lt;/DataTrigger&gt;
+                    &lt;/Style.Triggers&gt;
+                &lt;/Style&gt;
+            &lt;/TextBlock.Style&gt;
+        &lt;/TextBlock&gt;
+    &lt;/Grid&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/Views/AllNotesView.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows.Controls;
+
+namespace WpfNotes.Views;
+
+public partial class AllNotesView : UserControl
+{
+    public AllNotesView()
+    {
+        InitializeComponent();
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>ItemsSource="{Binding Notes}"</code> — au sprint 3, le code-behind écrivait
+            <code>NotesList.ItemsSource = sortedNotes;</code>. Ici, la vue va elle-même chercher la propriété
+            <code>Notes</code> de son ViewModel. L'<code>ItemsControl</code> n'a plus besoin de nom.</li>
+          <li>Le <code>DataTemplate</code> d'une carte est le même qu'au sprint 3, sans le bouton&nbsp;: ouvrir une note
+            arrive au sprint 5.</li>
+          <li>Le code-behind ne contient que <code>InitializeComponent()</code>&nbsp;: la vue n'a plus aucune
+            logique.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — le déclencheur de style (<code>DataTrigger</code>)</div>
+        Au sprint 3, le code-behind masquait le message «&nbsp;Aucune note&nbsp;» avec un <code>if</code>. La vue n'a
+        plus de code&nbsp;: c'est le XAML qui s'en charge. Le <code>Style</code> du texte fixe sa visibilité à
+        <code>Collapsed</code>&nbsp;; le <code>DataTrigger</code> la passe à <code>Visible</code> quand
+        <code>Notes.Count</code> vaut <code>0</code>. Comme la collection prévient de ses changements, le message
+        apparaît et disparaît tout seul.
+      </div>
+
+      <h3>4.2 — La fenêtre, et l'assemblage à la main</h3>
+      <p>Remplace le contenu de <code>MainWindow.xaml</code> par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/MainWindow.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Window
+    x:Class="WpfNotes.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:views="clr-namespace:WpfNotes.Views"
+    Title="WpfNotes"
+    Width="900"
+    Height="600"
+    WindowStartupLocation="CenterScreen"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{materialDesign:MaterialDesignFont}"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"&gt;
+
+    &lt;DockPanel&gt;
+
+        &lt;!-- Barre d'application : le titre --&gt;
+        &lt;materialDesign:ColorZone
+            Padding="16"
+            DockPanel.Dock="Top"
+            Mode="PrimaryMid"&gt;
+            &lt;TextBlock FontSize="20" Text="Mes notes" /&gt;
+        &lt;/materialDesign:ColorZone&gt;
+
+        &lt;!-- La liste des notes ; elle hérite du DataContext de la fenêtre --&gt;
+        &lt;views:AllNotesView /&gt;
+
+    &lt;/DockPanel&gt;
+&lt;/Window&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>xmlns:views="clr-namespace:WpfNotes.Views"</code> déclare un préfixe pour les classes de l'espace de noms
+        <code>WpfNotes.Views</code>&nbsp;; <code>&lt;views:AllNotesView /&gt;</code> place alors la vue dans la fenêtre,
+        sous la barre de titre.
+      </div>
+      <p>Puis le code-behind de la fenêtre&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/MainWindow.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using WpfNotes.Core.Services;
+using WpfNotes.Core.ViewModels;
+
+namespace WpfNotes;
+
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
+
+        // On assemble les pièces à la main : le service, puis le ViewModel qui l'utilise
+        IFileService fileService = new FileService();
+        AllNotesViewModel viewModel = new AllNotesViewModel(fileService);
+        viewModel.LoadNotes();
+
+        // Le ViewModel devient la source des Binding de la fenêtre et de ce qu'elle contient
+        DataContext = viewModel;
+    }
+}</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — le <code>DataContext</code>, la source des <code>Binding</code></div>
+        Au sprint 3, chaque carte avait sa note pour <code>DataContext</code>. Le principe est le même pour la
+        fenêtre&nbsp;: <code>DataContext = viewModel;</code> fait du ViewModel la source de tous ses
+        <code>Binding</code>. Et le <code>DataContext</code> se <b>transmet</b> aux enfants&nbsp;:
+        <code>AllNotesView</code>, placée dans la fenêtre, hérite du même ViewModel. C'est pour cela que
+        <code>{Binding Notes}</code> trouve la collection.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>IFileService fileService = new FileService();</code> — la variable a le type de l'interface, et
+            contient un objet de la classe qui la réalise. C'est la seule ligne de l'application qui nomme
+            <code>FileService</code>.</li>
+          <li><code>new AllNotesViewModel(fileService)</code> — on fournit au ViewModel le service qu'il attend.</li>
+          <li><code>viewModel.LoadNotes();</code> — on charge les notes avant d'afficher la fenêtre.</li>
+        </ul>
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — un Binding qui ne trouve rien ne dit rien</div>
+        Si tu écris <code>{Binding Note}</code> au lieu de <code>{Binding Notes}</code>, aucune erreur de
+        compilation&nbsp;: la liste reste simplement vide. WPF signale le problème dans la fenêtre <b>Sortie</b> de
+        Visual Studio, pendant l'exécution, avec une ligne qui commence par <code>System.Windows.Data Error</code>.
+        C'est le premier endroit à regarder quand un écran n'affiche pas ce qu'il devrait.
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        <ol>
+          <li>La liste affiche les notes créées avec la version code-behind&nbsp;: les deux versions partagent le même
+            dossier, <code>%LocalAppData%\WpfNotes\Notes</code>.</li>
+          <li>Si le dossier est vide, le message «&nbsp;Aucune note.&nbsp;» s'affiche. Ajoute à la main un fichier
+            <code>test.txt</code> dans le dossier, relance&nbsp;: une carte apparaît.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="bilan">
+    <div class="part-head"><div class="part-num">6</div><h2>Bilan des notions vues</h2></div>
+    <div class="prose">
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Notion</th><th>Étape</th><th>Rôle dans le TP</th></tr></thead>
+          <tbody>
+            <tr><td>MVVM</td><td class="step">—</td><td>Modèle, vue, ViewModel&nbsp;: la logique d'un écran sort de la vue.</td></tr>
+            <tr><td>Bibliothèque de classes</td><td class="step">1</td><td><code>WpfNotes.Core</code>&nbsp;: la logique, dans un projet à part.</td></tr>
+            <tr><td>Règle d'or net10.0</td><td class="step">1</td><td>Le compilateur interdit tout type WPF dans la logique.</td></tr>
+            <tr><td>Interface</td><td class="step">2</td><td><code>IFileService</code>&nbsp;: un contrat, plusieurs réalisations possibles.</td></tr>
+            <tr><td>: IFileService</td><td class="step">2</td><td>Une classe réalise une interface, comme <code>implements</code>.</td></tr>
+            <tr><td>Dépendance par le constructeur</td><td class="step">3</td><td>Le ViewModel reçoit son service au lieu de le créer.</td></tr>
+            <tr><td>ObservableCollection</td><td class="step">3</td><td>Une collection qui prévient la vue de ses changements.</td></tr>
+            <tr><td>DataContext</td><td class="step">4</td><td>La source des Binding, transmise aux éléments enfants.</td></tr>
+            <tr><td>DataTrigger</td><td class="step">4</td><td>Changer l'apparence selon une donnée, sans code-behind.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="git">
+    <div class="part-head"><div class="part-num">7</div><h2>Fin de sprint&nbsp;: commit &amp; tag</h2></div>
+    <div class="prose">
+      <p>À la racine de la nouvelle solution, crée le <code>.gitignore</code>. Il couvre maintenant plusieurs projets&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>.gitignore — nouveau fichier, à la racine</div>
+  <div class="code-wrap"><pre class="code">.vs
+bin/
+obj/
+TestResults/</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <code>bin/</code> et <code>obj/</code>, avec la barre oblique, désignent ces dossiers où qu'ils se trouvent&nbsp;:
+        dans chacun des projets. <code>TestResults/</code> servira au sprint 8.
+      </div>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine de la solution</div>
+  <div class="code-wrap"><pre class="code">git init
+git add .
+git commit -m "Sprint 4 : séparer la logique, deux projets et un premier ViewModel"
+git tag sprint-04</pre></div>
+</div>
+      <p>
+        Le dépôt de référence <code>NoteApp</code> contient ce même état au tag <code>sprint-04</code> de la branche
+        <code>main</code>.
+      </p>
+      <p class="sprintnav"><span></span><a href="../sprint-05/guide-sprint-05.html">Sprint 5 — Éditer une note →</a></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>NoteApp · Version MVVM — Guide TP sprint 4, séparer la logique de l'interface</p>
+  </footer>
+
+</div>

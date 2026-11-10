@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteApp — Sprint 7, l'injection de dépendances</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+:root{
+  --bg:#f5f3fa;
+  --surface:#ffffff;
+  --surface-2:#efebf8;
+  --ink:#211b34;
+  --ink-soft:#4a4360;
+  --muted:#726b8c;
+  --accent:#4c2d84;
+  --accent-strong:#341f5c;
+  --accent-tint:#eae3f8;
+  --lime:#5c8a29;
+  --lime-tint:#e9f3da;
+  --line:#e1dbf0;
+  --code-bg:#1e1b2b;
+  --code-header:#171420;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#9b7ee8;
+  --danger:#a6192e;
+  --danger-tint:#fbe7ea;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(33,27,52,.06), 0 8px 24px -12px rgba(33,27,52,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121f;
+    --surface:#1c1830;
+    --surface-2:#241f3d;
+    --ink:#efe9fb;
+    --ink-soft:#cabfe6;
+    --muted:#9186ad;
+    --accent:#b394f0;
+    --accent-strong:#d6c2ff;
+    --accent-tint:#2c2350;
+    --lime:#a5d66b;
+    --lime-tint:#26301c;
+    --line:#332a52;
+    --code-bg:#100e1a;
+    --code-header:#0b0a13;
+    --code-fg:#e8e3f5;
+    --code-muted:#8b83a8;
+    --code-accent:#b394f0;
+    --danger:#ff8fa3;
+    --danger-tint:#3a1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121f;
+  --surface:#1c1830;
+  --surface-2:#241f3d;
+  --ink:#efe9fb;
+  --ink-soft:#cabfe6;
+  --muted:#9186ad;
+  --accent:#b394f0;
+  --accent-strong:#d6c2ff;
+  --accent-tint:#2c2350;
+  --lime:#a5d66b;
+  --lime-tint:#26301c;
+  --line:#332a52;
+  --code-bg:#100e1a;
+  --code-header:#0b0a13;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#b394f0;
+  --danger:#ff8fa3;
+  --danger-tint:#3a1b23;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.62;
+}
+h1,h2,h3,h4{
+  font-family:"Barlow Semi Condensed","Segoe UI",sans-serif;
+  font-weight:700;color:var(--ink);text-wrap:balance;margin:0;
+}
+code, pre, .mono{font-family:"JetBrains Mono",Consolas,monospace;}
+::selection{background:var(--accent-tint);}
+a{color:var(--accent);}
+p{margin:0 0 14px;}
+p:last-child{margin-bottom:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:840px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14.5px;
+  letter-spacing:.02em;white-space:nowrap;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+.pillnav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.pillnav::-webkit-scrollbar{display:none;}
+.pillnav a{
+  flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:6px 9px;border-radius:999px;border:1px solid transparent;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.pillnav a:hover{background:var(--surface-2);color:var(--ink);}
+
+.container{max-width:840px;margin:0 auto;padding:0 24px;}
+.prose{max-width:680px;}
+
+/* ---------- Header ---------- */
+.pageintro{padding:44px 0 8px;}
+.eyebrow{
+  font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px;
+}
+.pageintro h1{font-size:clamp(27px,4vw,38px);line-height:1.08;max-width:22ch;margin-bottom:14px;}
+.pageintro p.lede{max-width:62ch;color:var(--ink-soft);font-size:16.5px;}
+
+.metastrip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;margin:28px 0 40px;
+}
+.metacell{background:var(--surface);padding:13px 16px;}
+.metacell .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.metacell .val{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);}
+@media (max-width:640px){.metastrip{grid-template-columns:1fr 1fr;}}
+
+/* ---------- Part sections ---------- */
+.part{scroll-margin-top:64px;padding:6px 0 46px;border-bottom:1px solid var(--line);}
+.part:last-of-type{border-bottom:none;}
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.part-num{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;
+  color:var(--surface);background:var(--accent);
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.part-head h2{font-size:23px;}
+.part-sub{margin:0 0 18px 44px;color:var(--muted);font-size:14.5px;}
+.part > .prose > h3{font-size:16.5px;margin:28px 0 10px;color:var(--ink);}
+.part > .prose > h3:first-child{margin-top:0;}
+
+/* ---------- Recurring blocks ---------- */
+.tagline{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 0;margin-bottom:8px;
+}
+.concept{
+  background:var(--accent-tint);border-radius:0 8px 8px 0;border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.concept .tagline{color:var(--accent-strong);}
+.concept b{color:var(--ink);}
+
+.explain{
+  background:var(--surface-2);border-radius:8px;padding:14px 18px;margin:0 0 16px;
+  font-size:14.5px;color:var(--ink-soft);
+}
+.explain .tagline{color:var(--muted);}
+.explain code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.92em;color:var(--ink);}
+.explain b{color:var(--ink);}
+.explain ul,.explain ol{margin:8px 0 0;padding-left:20px;}
+.explain li{margin-bottom:6px;}
+.explain li:last-child{margin-bottom:0;}
+
+.watch{
+  border-left:3px solid var(--danger);background:var(--danger-tint);border-radius:0 8px 8px 0;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-soft);
+}
+.watch .tagline{color:var(--danger);}
+.watch b{color:var(--ink);}
+.watch code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+
+.checkpoint{
+  border:1px dashed var(--lime);border-radius:8px;padding:14px 18px;margin:20px 0 0;
+  background:var(--lime-tint);font-size:14.5px;color:var(--ink-soft);
+}
+.checkpoint .tagline{color:var(--lime);}
+.checkpoint b{color:var(--ink);}
+.checkpoint code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+.checkpoint ol{margin:8px 0 0;padding-left:20px;}
+.checkpoint li{margin-bottom:5px;}
+
+p code, li code, .prose > p code{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-size:.9em;color:var(--accent-strong);font-weight:500;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block{border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:14px 0 16px;box-shadow:var(--shadow);}
+.code-file{
+  background:var(--code-header);color:var(--code-muted);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;padding:8px 14px;display:flex;align-items:center;gap:8px;
+}
+.code-file i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.code-file i.cs{background:var(--code-accent);}
+.code-file i.xaml{background:#e8a04e;}
+.code-file i.cfg{background:var(--lime);}
+.code-file i.new{background:var(--lime);}
+.code-wrap{background:var(--code-bg);overflow-x:auto;}
+pre.code{margin:0;padding:15px 16px;font-family:"JetBrains Mono",monospace;font-size:12.6px;line-height:1.62;color:var(--code-fg);white-space:pre;tab-size:4;}
+
+/* ---------- Diagram ---------- */
+.diagram{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:14px;margin:14px 0 16px;box-shadow:var(--shadow);}
+.diagram svg{width:100%;height:auto;display:block;}
+
+.recap{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;}
+.recap th,.recap td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+.recap th{background:var(--surface-2);font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;}
+.recap-wrap{overflow-x:auto;border-radius:8px;}
+.recap td:first-child{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+.recap td.step{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;color:var(--muted);white-space:nowrap;}
+
+footer{padding:24px 0 60px;}
+footer p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ---------- Depuis PHP (pont avec ce que les étudiants connaissent) ---------- */
+.bridge{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lime);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.bridge .tagline{color:var(--lime);}
+.bridge b{color:var(--ink);}
+.bridge p code,.bridge li code{color:var(--ink);}
+.bridge ul{margin:8px 0 0;padding-left:20px;}
+.bridge li{margin-bottom:5px;}
+.bridge .code-block{margin:10px 0 0;box-shadow:none;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare .code-block{margin:0;}
+@media (max-width:700px){.compare{grid-template-columns:1fr;}}
+.code-file i.php{background:#8892bf;}
+
+/* ---------- Navigation entre sprints ---------- */
+.sprintnav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font-size:14px;}
+.sprintnav a{text-decoration:none;font-weight:600;}
+.compare pre.code{font-size:11.2px;padding:12px 12px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand"><span class="dot"></span>NoteApp · Guide TP MVVM</span>
+    <nav class="pillnav" aria-label="Navigation des parties">
+      <a href="#depart">Départ</a>
+      <a href="#etape1">Étape 1</a>
+      <a href="#etape2">Étape 2</a>
+      <a href="#etape3">Étape 3</a>
+      <a href="#bilan">Bilan</a>
+      <a href="#git">Git</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <header class="pageintro">
+    <p class="eyebrow">NoteApp · Version MVVM · Sprint 7 (4 sur 5)</p>
+    <h1>L'injection de dépendances</h1>
+    <p class="lede">
+      Chaque classe reçoit maintenant ce dont elle a besoin par son constructeur. Mais quelqu'un doit encore tout
+      créer, dans le bon ordre&nbsp;: c'est <code>App.xaml.cs</code>, à la main. Dans ce sprint court, tu confies ce
+      travail à un <b>conteneur d'injection de dépendances</b>, l'équivalent du conteneur de services de Laravel.
+    </p>
+    <div class="metastrip">
+      <div class="metacell"><div class="lbl">Point de départ</div><div class="val">tag sprint-06</div></div>
+      <div class="metacell"><div class="lbl">Point d'arrivée</div><div class="val">tag sprint-07</div></div>
+      <div class="metacell"><div class="lbl">Package</div><div class="val">Microsoft.Extensions.DependencyInjection</div></div>
+      <div class="metacell"><div class="lbl">Fichiers modifiés</div><div class="val">2</div></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <section class="part" id="depart">
+    <div class="part-head"><div class="part-num">0</div><h2>Où en est-on&nbsp;? Que va-t-on faire&nbsp;?</h2></div>
+    <div class="prose">
+      <p>
+        À la fin du sprint 6, l'application est complète&nbsp;: liste, édition, enregistrement, suppression avec
+        confirmation, messages entre ViewModels. Aucun ViewModel ne crée ses services&nbsp;: il les reçoit. C'est
+        <code>App.xaml.cs</code> qui crée tous les objets, à la main, dans le bon ordre.
+      </p>
+      <p>Pour ce sprint&nbsp;: trois étapes.</p>
+      <div class="explain">
+        <ul>
+          <li><b>Étape 1</b> — comprendre ce que fait l'assemblage à la main, et ses limites.</li>
+          <li><b>Étape 2</b> — le remplacer par un conteneur.</li>
+          <li><b>Étape 3</b> — vérifier que rien d'autre n'a changé, et lire une erreur du conteneur.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape1">
+    <div class="part-head"><div class="part-num">1</div><h2>Étape 1 — Ce que fait l'assemblage à la main</h2></div>
+    <p class="part-sub">Un graphe de dépendances.</p>
+    <div class="prose">
+      <p>Relis <code>App.xaml.cs</code> tel qu'il est à la fin du sprint 6&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/App.xaml.cs — fin du sprint 6</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using CommunityToolkit.Mvvm.Messaging;
+using MaterialDesignThemes.Wpf;
+using WpfNotes.Core.Services;
+using WpfNotes.Core.ViewModels;
+using WpfNotes.Services;
+
+namespace WpfNotes;
+
+public partial class App : Application
+{
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        // On assemble l'application à la main : chaque objet reçoit ce dont il a besoin
+        IFileService fileService = new FileService();
+        IDialogService dialogService = new DialogService();
+        SnackbarMessageQueue messageQueue = new SnackbarMessageQueue(TimeSpan.FromSeconds(2));
+        INotificationService notificationService = new NotificationService(messageQueue);
+        IMessenger messenger = WeakReferenceMessenger.Default;
+        MainViewModel mainViewModel = new MainViewModel(fileService, dialogService, notificationService, messenger);
+
+        MainWindow mainWindow = new MainWindow(mainViewModel, messageQueue);
+        mainWindow.Show();
+    }
+}</pre></div>
+</div>
+      <p>Chaque objet a besoin d'autres objets, qui doivent exister avant lui. Mis bout à bout, ces besoins forment un <b>graphe de dépendances</b>&nbsp;:</p>
+      <div class="diagram">
+        <svg viewBox="0 0 640 274" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainWindow dépend de MainViewModel et de SnackbarMessageQueue. MainViewModel dépend de IFileService, IDialogService, INotificationService et IMessenger. NotificationService dépend de SnackbarMessageQueue.">
+          <defs>
+            <marker id="s7-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" style="fill:var(--muted)" />
+            </marker>
+          </defs>
+          <rect x="16" y="104" width="126" height="48" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="79" y="133" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--ink)">MainWindow</text>
+
+          <rect x="190" y="52" width="160" height="48" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.5" />
+          <text x="270" y="81" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--accent-strong)">MainViewModel</text>
+          <rect x="190" y="178" width="160" height="48" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="270" y="207" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink)">SnackbarMessageQueue</text>
+
+          <rect x="400" y="12" width="224" height="48" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="512" y="32" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink)">IFileService</text>
+          <text x="512" y="50" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">FileService</text>
+          <rect x="400" y="68" width="224" height="48" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="512" y="88" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink)">IDialogService</text>
+          <text x="512" y="106" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">DialogService</text>
+          <rect x="400" y="124" width="224" height="48" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="512" y="144" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink)">INotificationService</text>
+          <text x="512" y="162" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">NotificationService</text>
+          <rect x="400" y="180" width="224" height="48" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="512" y="200" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" style="fill:var(--ink)">IMessenger</text>
+          <text x="512" y="218" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">WeakReferenceMessenger.Default</text>
+
+          <path d="M142 118 L186 86" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s7-arrow)" />
+          <path d="M142 140 L186 196" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s7-arrow)" />
+          <path d="M350 68 L396 38" fill="none" style="stroke:var(--muted)" stroke-width="1.2" marker-end="url(#s7-arrow)" />
+          <path d="M350 76 L396 90" fill="none" style="stroke:var(--muted)" stroke-width="1.2" marker-end="url(#s7-arrow)" />
+          <path d="M350 84 L396 142" fill="none" style="stroke:var(--muted)" stroke-width="1.2" marker-end="url(#s7-arrow)" />
+          <path d="M350 92 L396 196" fill="none" style="stroke:var(--muted)" stroke-width="1.2" marker-end="url(#s7-arrow)" />
+          <text x="16" y="250" font-family="Source Sans 3, sans-serif" font-size="11.5" style="fill:var(--ink-soft)">une flèche = « a besoin de » ; sous chaque contrat, en gris, la réalisation fournie</text>
+          <text x="16" y="267" font-family="Source Sans 3, sans-serif" font-size="11.5" style="fill:var(--ink-soft)">NotificationService a lui aussi besoin de la SnackbarMessageQueue</text>
+        </svg>
+      </div>
+      <p>Cet assemblage fonctionne, mais il a trois défauts qui grandissent avec l'application&nbsp;:</p>
+      <div class="explain">
+        <ul>
+          <li>l'<b>ordre</b> compte&nbsp;: un objet ne peut être créé qu'après ceux dont il dépend&nbsp;;</li>
+          <li>ajouter un paramètre à un constructeur oblige à modifier l'assemblage&nbsp;;</li>
+          <li>chaque objet partagé (la file du Snackbar, le Messenger) doit être passé à la main à tous ceux qui en ont
+            besoin.</li>
+        </ul>
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — le conteneur de services de Laravel</div>
+        Dans Laravel, tu n'écris jamais <code>new NoteController(new NoteRepository(…))</code>&nbsp;: le <b>conteneur de
+        services</b> lit le constructeur du contrôleur, voit qu'il attend une <code>NoteRepositoryInterface</code>, et
+        fournit l'objet enregistré pour ce contrat dans un <em>service provider</em>
+        (<code>$this-&gt;app-&gt;singleton(NoteRepositoryInterface::class, NoteRepository::class);</code>). C'est exactement
+        ce que fait <code>ServiceCollection</code> en .NET.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape2">
+    <div class="part-head"><div class="part-num">2</div><h2>Étape 2 — Le conteneur</h2></div>
+    <p class="part-sub">ServiceCollection, AddSingleton, méthode générique, résolution par le constructeur.</p>
+    <div class="prose">
+
+      <h3>2.1 — Installer le package</h3>
+      <p>
+        Installe le package NuGet <code>Microsoft.Extensions.DependencyInjection</code>, version <code>10.0.0</code>,
+        dans le projet <code>WpfNotes</code> (et non dans <code>WpfNotes.Core</code>)&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>WpfNotes/WpfNotes.csproj</div>
+  <div class="code-wrap"><pre class="code">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;OutputType&gt;WinExe&lt;/OutputType&gt;
+    &lt;TargetFramework&gt;net10.0-windows&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;UseWPF&gt;true&lt;/UseWPF&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="MaterialDesignThemes" Version="5.3.2" /&gt;
+    &lt;PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;ProjectReference Include="..\WpfNotes.Core\WpfNotes.Core.csproj" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</pre></div>
+</div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — la bibliothèque ignore le conteneur</div>
+        Seul l'assemblage, dans <code>App</code>, connaît le conteneur. Les ViewModels et les services de
+        <code>WpfNotes.Core</code> continuent de recevoir leurs dépendances par leur constructeur, sans savoir qui les
+        leur fournit&nbsp;: à la main, par un conteneur, ou par un test.
+      </div>
+
+      <h3>2.2 — Enregistrer, construire, demander</h3>
+      <p>Remplace le contenu de <code>App.xaml.cs</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/App.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using CommunityToolkit.Mvvm.Messaging;
+using MaterialDesignThemes.Wpf;
+using Microsoft.Extensions.DependencyInjection;
+using WpfNotes.Core.Services;
+using WpfNotes.Core.ViewModels;
+using WpfNotes.Services;
+
+namespace WpfNotes;
+
+public partial class App : Application
+{
+    // Le conteneur d'injection de dépendances, gardé pour être libéré à la fermeture
+    private ServiceProvider? _serviceProvider;
+
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        // 1. Déclarer, pour chaque type demandé, ce que le conteneur doit fournir
+        ServiceCollection services = new ServiceCollection();
+        services.AddSingleton&lt;IFileService, FileService&gt;();
+        services.AddSingleton&lt;IDialogService, DialogService&gt;();
+        services.AddSingleton&lt;SnackbarMessageQueue&gt;(new SnackbarMessageQueue(TimeSpan.FromSeconds(2)));
+        services.AddSingleton&lt;INotificationService, NotificationService&gt;();
+        services.AddSingleton&lt;IMessenger&gt;(WeakReferenceMessenger.Default);
+        services.AddSingleton&lt;MainViewModel&gt;();
+        services.AddSingleton&lt;MainWindow&gt;();
+
+        // 2. Construire le conteneur
+        _serviceProvider = services.BuildServiceProvider();
+
+        // 3. Lui demander la fenêtre : il crée tout ce dont elle a besoin, dans le bon ordre
+        MainWindow mainWindow = _serviceProvider.GetRequiredService&lt;MainWindow&gt;();
+        mainWindow.Show();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        if (_serviceProvider != null)
+        {
+            _serviceProvider.Dispose();
+        }
+        base.OnExit(e);
+    }
+}</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — une méthode générique</div>
+        <code>AddSingleton&lt;IFileService, FileService&gt;()</code> est une méthode <b>générique</b>&nbsp;: entre les chevrons,
+        on ne lui passe pas des valeurs mais des <b>types</b>. PHP n'a pas d'équivalent direct&nbsp;; le plus proche
+        est de passer des noms de classe, comme <code>singleton(FileServiceInterface::class, FileService::class)</code>.
+        Tu as déjà utilisé des types génériques sans le dire&nbsp;: <code>List&lt;Note&gt;</code>,
+        <code>IRecipient&lt;NoteSavedMessage&gt;</code>.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><b>1.</b> <code>ServiceCollection</code> — la liste des enregistrements&nbsp;:
+            <ul>
+              <li><code>AddSingleton&lt;IFileService, FileService&gt;()</code> — «&nbsp;quand on demande un
+                <code>IFileService</code>, fournis un <code>FileService</code>&nbsp;». Le conteneur le créera lui-même.</li>
+              <li><code>AddSingleton&lt;SnackbarMessageQueue&gt;(new SnackbarMessageQueue(…))</code> — ici, on fournit
+                l'objet déjà créé&nbsp;: le conteneur ne saurait pas quelle durée passer au constructeur.</li>
+              <li><code>AddSingleton&lt;IMessenger&gt;(WeakReferenceMessenger.Default)</code> — de même, l'instance
+                partagée du Toolkit.</li>
+              <li><code>AddSingleton&lt;MainViewModel&gt;()</code> et <code>AddSingleton&lt;MainWindow&gt;()</code> — des
+                classes concrètes, demandées telles quelles.</li>
+            </ul>
+          </li>
+          <li><b>2.</b> <code>BuildServiceProvider()</code> — construit le conteneur à partir de la liste.</li>
+          <li><b>3.</b> <code>GetRequiredService&lt;MainWindow&gt;()</code> — demande la fenêtre. Le conteneur lit son
+            constructeur, voit qu'il attend un <code>MainViewModel</code> et une <code>SnackbarMessageQueue</code>,
+            crée d'abord le <code>MainViewModel</code> (qui attend lui-même quatre services, créés avant lui), et ainsi
+            de suite. C'est le graphe de l'étape 1, parcouru automatiquement.</li>
+          <li><code>OnExit</code> — à la fermeture, <code>Dispose()</code> libère le conteneur et les objets qu'il a créés.
+            <code>_serviceProvider</code> est déclaré <code>ServiceProvider?</code>&nbsp;: il vaut <code>null</code> jusqu'au
+            démarrage, d'où le test avant de l'utiliser.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — singleton ou transient&nbsp;?</div>
+        <code>AddSingleton</code> signifie&nbsp;: un seul objet pour toute l'application, créé à la première demande puis
+        toujours le même. L'autre durée de vie courante est <code>AddTransient</code>&nbsp;: un objet neuf à chaque
+        demande (le <code>bind</code> de Laravel, quand <code>singleton</code> est l'équivalent de
+        <code>AddSingleton</code>). Ici, tout est singleton&nbsp;: les services sont partagés, et les
+        <code>NoteViewModel</code>, qui doivent être neufs pour chaque note, ne passent pas par le conteneur&nbsp;:
+        <code>MainViewModel</code> les crée lui-même.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape3">
+    <div class="part-head"><div class="part-num">3</div><h2>Étape 3 — Rien d'autre n'a changé</h2></div>
+    <p class="part-sub">La preuve par Git, et une erreur à savoir lire.</p>
+    <div class="prose">
+      <p>Avant de commiter, regarde la liste des fichiers modifiés depuis le sprint 6&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine de la solution</div>
+  <div class="code-wrap"><pre class="code">git status</pre></div>
+</div>
+      <p>
+        Seuls <code>App.xaml.cs</code> et <code>WpfNotes.csproj</code> ont changé. Aucun ViewModel, aucun service, aucune
+        vue&nbsp;: c'est le bénéfice d'avoir fait recevoir ses dépendances à chaque classe. On a changé <em>qui</em>
+        fournit les objets, sans toucher à ceux qui les utilisent.
+      </p>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        L'application se comporte exactement comme au sprint 6&nbsp;: liste, création, enregistrement, suppression avec
+        confirmation.
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — un service oublié</div>
+        <p>
+          Mets en commentaire la ligne <code>services.AddSingleton&lt;INotificationService, NotificationService&gt;();</code>,
+          puis lance avec F5. L'application s'arrête au démarrage sur une exception&nbsp;:
+        </p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Message d'erreur (extrait)</div>
+  <div class="code-wrap"><pre class="code">Unable to resolve service for type 'WpfNotes.Core.Services.INotificationService'
+while attempting to activate 'WpfNotes.Core.ViewModels.MainViewModel'.</pre></div>
+</div>
+        <p>
+          Il se lit ainsi&nbsp;: «&nbsp;en créant <code>MainViewModel</code>, je n'ai trouvé aucun enregistrement pour
+          <code>INotificationService</code>&nbsp;». Le second nom dit qui le demande, le premier ce qui manque. Remets la
+          ligne avant de continuer.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="bilan">
+    <div class="part-head"><div class="part-num">4</div><h2>Bilan des notions vues</h2></div>
+    <div class="prose">
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Notion</th><th>Étape</th><th>Rôle dans le TP</th></tr></thead>
+          <tbody>
+            <tr><td>Graphe de dépendances</td><td class="step">1</td><td>Qui a besoin de qui, et dans quel ordre créer les objets.</td></tr>
+            <tr><td>Conteneur d'injection</td><td class="step">2</td><td>Crée et assemble les objets à partir des enregistrements.</td></tr>
+            <tr><td>ServiceCollection</td><td class="step">2</td><td>La liste des enregistrements.</td></tr>
+            <tr><td>Méthode générique</td><td class="step">2</td><td><code>AddSingleton&lt;IFileService, FileService&gt;()</code>&nbsp;: des types en paramètres.</td></tr>
+            <tr><td>GetRequiredService</td><td class="step">2</td><td>Demander un objet&nbsp;; le conteneur résout tout le graphe.</td></tr>
+            <tr><td>Singleton / transient</td><td class="step">2</td><td>Un objet partagé, ou un objet neuf à chaque demande.</td></tr>
+            <tr><td>Dispose</td><td class="step">2</td><td>Libérer le conteneur à la fermeture.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="git">
+    <div class="part-head"><div class="part-num">5</div><h2>Fin de sprint&nbsp;: commit &amp; tag</h2></div>
+    <div class="prose">
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine de la solution</div>
+  <div class="code-wrap"><pre class="code">git add .
+git commit -m "Sprint 7 : injection de dépendances avec ServiceCollection"
+git tag sprint-07</pre></div>
+</div>
+      <p>
+        Le dépôt de référence <code>NoteApp</code> contient ce même état au tag <code>sprint-07</code> de la branche
+        <code>main</code>.
+      </p>
+      <p class="sprintnav"><a href="../sprint-06/guide-sprint-06.html">← Sprint 6 — Supprimer et prévenir la liste</a><a href="../sprint-08/guide-sprint-08.html">Sprint 8 — Tests unitaires →</a></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>NoteApp · Version MVVM — Guide TP sprint 7, l'injection de dépendances</p>
+  </footer>
+
+</div>

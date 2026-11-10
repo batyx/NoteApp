@@ -1,0 +1,1219 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteApp — Sprint 5, éditer une note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+:root{
+  --bg:#f5f3fa;
+  --surface:#ffffff;
+  --surface-2:#efebf8;
+  --ink:#211b34;
+  --ink-soft:#4a4360;
+  --muted:#726b8c;
+  --accent:#4c2d84;
+  --accent-strong:#341f5c;
+  --accent-tint:#eae3f8;
+  --lime:#5c8a29;
+  --lime-tint:#e9f3da;
+  --line:#e1dbf0;
+  --code-bg:#1e1b2b;
+  --code-header:#171420;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#9b7ee8;
+  --danger:#a6192e;
+  --danger-tint:#fbe7ea;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(33,27,52,.06), 0 8px 24px -12px rgba(33,27,52,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121f;
+    --surface:#1c1830;
+    --surface-2:#241f3d;
+    --ink:#efe9fb;
+    --ink-soft:#cabfe6;
+    --muted:#9186ad;
+    --accent:#b394f0;
+    --accent-strong:#d6c2ff;
+    --accent-tint:#2c2350;
+    --lime:#a5d66b;
+    --lime-tint:#26301c;
+    --line:#332a52;
+    --code-bg:#100e1a;
+    --code-header:#0b0a13;
+    --code-fg:#e8e3f5;
+    --code-muted:#8b83a8;
+    --code-accent:#b394f0;
+    --danger:#ff8fa3;
+    --danger-tint:#3a1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121f;
+  --surface:#1c1830;
+  --surface-2:#241f3d;
+  --ink:#efe9fb;
+  --ink-soft:#cabfe6;
+  --muted:#9186ad;
+  --accent:#b394f0;
+  --accent-strong:#d6c2ff;
+  --accent-tint:#2c2350;
+  --lime:#a5d66b;
+  --lime-tint:#26301c;
+  --line:#332a52;
+  --code-bg:#100e1a;
+  --code-header:#0b0a13;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#b394f0;
+  --danger:#ff8fa3;
+  --danger-tint:#3a1b23;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.62;
+}
+h1,h2,h3,h4{
+  font-family:"Barlow Semi Condensed","Segoe UI",sans-serif;
+  font-weight:700;color:var(--ink);text-wrap:balance;margin:0;
+}
+code, pre, .mono{font-family:"JetBrains Mono",Consolas,monospace;}
+::selection{background:var(--accent-tint);}
+a{color:var(--accent);}
+p{margin:0 0 14px;}
+p:last-child{margin-bottom:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:840px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14.5px;
+  letter-spacing:.02em;white-space:nowrap;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+.pillnav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.pillnav::-webkit-scrollbar{display:none;}
+.pillnav a{
+  flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:6px 9px;border-radius:999px;border:1px solid transparent;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.pillnav a:hover{background:var(--surface-2);color:var(--ink);}
+
+.container{max-width:840px;margin:0 auto;padding:0 24px;}
+.prose{max-width:680px;}
+
+/* ---------- Header ---------- */
+.pageintro{padding:44px 0 8px;}
+.eyebrow{
+  font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px;
+}
+.pageintro h1{font-size:clamp(27px,4vw,38px);line-height:1.08;max-width:22ch;margin-bottom:14px;}
+.pageintro p.lede{max-width:62ch;color:var(--ink-soft);font-size:16.5px;}
+
+.metastrip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;margin:28px 0 40px;
+}
+.metacell{background:var(--surface);padding:13px 16px;}
+.metacell .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.metacell .val{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);}
+@media (max-width:640px){.metastrip{grid-template-columns:1fr 1fr;}}
+
+/* ---------- Part sections ---------- */
+.part{scroll-margin-top:64px;padding:6px 0 46px;border-bottom:1px solid var(--line);}
+.part:last-of-type{border-bottom:none;}
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.part-num{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;
+  color:var(--surface);background:var(--accent);
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.part-head h2{font-size:23px;}
+.part-sub{margin:0 0 18px 44px;color:var(--muted);font-size:14.5px;}
+.part > .prose > h3{font-size:16.5px;margin:28px 0 10px;color:var(--ink);}
+.part > .prose > h3:first-child{margin-top:0;}
+
+/* ---------- Recurring blocks ---------- */
+.tagline{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 0;margin-bottom:8px;
+}
+.concept{
+  background:var(--accent-tint);border-radius:0 8px 8px 0;border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.concept .tagline{color:var(--accent-strong);}
+.concept b{color:var(--ink);}
+
+.explain{
+  background:var(--surface-2);border-radius:8px;padding:14px 18px;margin:0 0 16px;
+  font-size:14.5px;color:var(--ink-soft);
+}
+.explain .tagline{color:var(--muted);}
+.explain code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.92em;color:var(--ink);}
+.explain b{color:var(--ink);}
+.explain ul,.explain ol{margin:8px 0 0;padding-left:20px;}
+.explain li{margin-bottom:6px;}
+.explain li:last-child{margin-bottom:0;}
+
+.watch{
+  border-left:3px solid var(--danger);background:var(--danger-tint);border-radius:0 8px 8px 0;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-soft);
+}
+.watch .tagline{color:var(--danger);}
+.watch b{color:var(--ink);}
+.watch code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+
+.checkpoint{
+  border:1px dashed var(--lime);border-radius:8px;padding:14px 18px;margin:20px 0 0;
+  background:var(--lime-tint);font-size:14.5px;color:var(--ink-soft);
+}
+.checkpoint .tagline{color:var(--lime);}
+.checkpoint b{color:var(--ink);}
+.checkpoint code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+.checkpoint ol{margin:8px 0 0;padding-left:20px;}
+.checkpoint li{margin-bottom:5px;}
+
+p code, li code, .prose > p code{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-size:.9em;color:var(--accent-strong);font-weight:500;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block{border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:14px 0 16px;box-shadow:var(--shadow);}
+.code-file{
+  background:var(--code-header);color:var(--code-muted);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;padding:8px 14px;display:flex;align-items:center;gap:8px;
+}
+.code-file i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.code-file i.cs{background:var(--code-accent);}
+.code-file i.xaml{background:#e8a04e;}
+.code-file i.cfg{background:var(--lime);}
+.code-file i.new{background:var(--lime);}
+.code-wrap{background:var(--code-bg);overflow-x:auto;}
+pre.code{margin:0;padding:15px 16px;font-family:"JetBrains Mono",monospace;font-size:12.6px;line-height:1.62;color:var(--code-fg);white-space:pre;tab-size:4;}
+
+/* ---------- Diagram ---------- */
+.diagram{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:14px;margin:14px 0 16px;box-shadow:var(--shadow);}
+.diagram svg{width:100%;height:auto;display:block;}
+
+.recap{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;}
+.recap th,.recap td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+.recap th{background:var(--surface-2);font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;}
+.recap-wrap{overflow-x:auto;border-radius:8px;}
+.recap td:first-child{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+.recap td.step{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;color:var(--muted);white-space:nowrap;}
+
+footer{padding:24px 0 60px;}
+footer p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ---------- Depuis PHP (pont avec ce que les étudiants connaissent) ---------- */
+.bridge{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lime);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.bridge .tagline{color:var(--lime);}
+.bridge b{color:var(--ink);}
+.bridge p code,.bridge li code{color:var(--ink);}
+.bridge ul{margin:8px 0 0;padding-left:20px;}
+.bridge li{margin-bottom:5px;}
+.bridge .code-block{margin:10px 0 0;box-shadow:none;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare .code-block{margin:0;}
+@media (max-width:700px){.compare{grid-template-columns:1fr;}}
+.code-file i.php{background:#8892bf;}
+
+/* ---------- Navigation entre sprints ---------- */
+.sprintnav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font-size:14px;}
+.sprintnav a{text-decoration:none;font-weight:600;}
+.compare pre.code{font-size:11.2px;padding:12px 12px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand"><span class="dot"></span>NoteApp · Guide TP MVVM</span>
+    <nav class="pillnav" aria-label="Navigation des parties">
+      <a href="#depart">Départ</a>
+      <a href="#etape1">Étape 1</a>
+      <a href="#etape2">Étape 2</a>
+      <a href="#etape3">Étape 3</a>
+      <a href="#bilan">Bilan</a>
+      <a href="#git">Git</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <header class="pageintro">
+    <p class="eyebrow">NoteApp · Version MVVM · Sprint 5 (2 sur 5)</p>
+    <h1>Éditer une note</h1>
+    <p class="lede">
+      La liste s'affiche, mais on ne peut rien en faire. Dans ce sprint, tu écris le ViewModel d'une note, avec ses
+      commandes Enregistrer et Annuler, puis tu mets en place la navigation&nbsp;: c'est un ViewModel qui décide de
+      l'écran affiché, et WPF choisit la vue qui lui correspond. Le MVVM Toolkit entre en scène pour écrire moins de
+      code.
+    </p>
+    <div class="metastrip">
+      <div class="metacell"><div class="lbl">Point de départ</div><div class="val">tag sprint-04</div></div>
+      <div class="metacell"><div class="lbl">Point d'arrivée</div><div class="val">tag sprint-05</div></div>
+      <div class="metacell"><div class="lbl">Package</div><div class="val">CommunityToolkit.Mvvm</div></div>
+      <div class="metacell"><div class="lbl">Nouveaux ViewModels</div><div class="val">NoteViewModel, MainViewModel</div></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <section class="part" id="depart">
+    <div class="part-head"><div class="part-num">0</div><h2>Où en est-on&nbsp;? Que va-t-on faire&nbsp;?</h2></div>
+    <div class="prose">
+      <p>
+        À la fin du sprint 4, la solution compte deux projets. <code>WpfNotes.Core</code> contient le modèle
+        <code>Note</code>, le service <code>IFileService</code> / <code>FileService</code>, et
+        <code>AllNotesViewModel</code>. La fenêtre crée ces objets à la main et affiche la liste par Binding. On ne
+        peut ni ouvrir ni créer de note.
+      </p>
+      <p>Pour ce sprint&nbsp;: trois étapes.</p>
+      <div class="explain">
+        <ul>
+          <li><b>Étape 1</b> — deux nouveaux contrats (naviguer, notifier), et le ViewModel d'une note.</li>
+          <li><b>Étape 2</b> — la navigation&nbsp;: changer d'écran en changeant de ViewModel, puis tout assembler.</li>
+          <li><b>Étape 3</b> — constater un problème, qui sera résolu au sprint 6.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape1">
+    <div class="part-head"><div class="part-num">1</div><h2>Étape 1 — Deux contrats et le ViewModel d'une note</h2></div>
+    <p class="part-sub">MVVM Toolkit, ObservableObject, propriété et commande générées.</p>
+    <div class="prose">
+
+      <h3>1.1 — Installer le MVVM Toolkit</h3>
+      <p>
+        Installe le package NuGet <code>CommunityToolkit.Mvvm</code>, version <code>8.4.0</code>, dans le projet
+        <code>WpfNotes.Core</code>. Le <code>.csproj</code> de la bibliothèque devient&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>WpfNotes.Core/WpfNotes.Core.csproj</div>
+  <div class="code-wrap"><pre class="code">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — un package qui écrit du code pour toi</div>
+        Le MVVM Toolkit de Microsoft fournit des classes de base pour les ViewModels, et surtout des
+        <b>générateurs de code</b>&nbsp;: tu places un attribut (<code>[ObservableProperty]</code>,
+        <code>[RelayCommand]</code>) devant un champ ou une méthode, et le compilateur écrit pour toi le code répétitif
+        qui va avec. Ce code n'apparaît pas dans tes fichiers, mais il est bien compilé. Chaque fois qu'on utilise un
+        attribut, un encadré montre ce qu'il génère.
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — le Toolkit va dans <code>WpfNotes.Core</code></div>
+        Le Toolkit ne dépend pas de WPF&nbsp;: il respecte la règle d'or, et c'est dans la bibliothèque que vivent les
+        ViewModels. Ne l'installe pas dans le projet <code>WpfNotes</code>&nbsp;: il en profite déjà grâce à la
+        référence de projet.
+      </div>
+
+      <h3>1.2 — Deux nouveaux contrats</h3>
+      <p>
+        Dans la version code-behind, l'écran d'une note appelait directement la fenêtre pour changer d'écran
+        (<code>mainWindow.ShowAllNotes()</code>) et afficher un message (<code>mainWindow.ShowMessage(…)</code>). Un
+        ViewModel ne connaît pas la fenêtre&nbsp;: il passera par deux contrats.
+      </p>
+      <div class="concept">
+        <div class="tagline">Notion — à quoi servent ces deux interfaces&nbsp;?</div>
+        <ul>
+          <li><code>INavigationService</code> — changer d'écran. Elle sera utilisée par <code>AllNotesViewModel</code>
+            (bouton «&nbsp;+&nbsp;», clic sur une carte) et par <code>NoteViewModel</code> (Enregistrer, Annuler). Deux
+            réalisations&nbsp;: <code>MainViewModel</code>, à l'étape 2, qui change vraiment d'écran, et
+            <code>FakeNavigationService</code>, au sprint 8, qui retient seulement l'écran demandé.</li>
+          <li><code>INotificationService</code> — afficher un message. Elle sera utilisée par
+            <code>NoteViewModel</code>. Deux réalisations&nbsp;: <code>NotificationService</code>, dans le projet WPF, qui
+            utilise le Snackbar, et <code>FakeNotificationService</code>, au sprint 8, qui garde les messages dans une
+            liste.</li>
+        </ul>
+        Dans les deux cas, le ViewModel ne sait pas laquelle il utilise&nbsp;: il respecte le contrat, c'est tout.
+      </div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/Services/INavigationService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Models;
+
+namespace WpfNotes.Core.Services;
+
+// Changer d'écran. Les ViewModels demandent un écran ; ils ne savent pas comment il s'affiche.
+public interface INavigationService
+{
+    // Affiche la liste des notes
+    void NavigateToAllNotes();
+
+    // Affiche l'écran d'une note : une note existante, ou une note neuve
+    void NavigateToNote(Note note);
+}</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/Services/INotificationService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">namespace WpfNotes.Core.Services;
+
+// Afficher un court message à l'utilisateur.
+// L'implémentation réelle utilise le Snackbar de MaterialDesign, dans le projet WPF.
+public interface INotificationService
+{
+    void Show(string message);
+}</pre></div>
+</div>
+
+      <h3>1.3 — Le ViewModel d'une note</h3>
+      <p>Crée <code>NoteViewModel</code> dans le dossier <code>ViewModels</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/ViewModels/NoteViewModel.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// La logique de l'écran « une note »
+public partial class NoteViewModel : ObservableObject
+{
+    private readonly Note _note;
+    private readonly IFileService _fileService;
+    private readonly INotificationService _notificationService;
+    private readonly INavigationService _navigationService;
+
+    public NoteViewModel(
+        Note note,
+        IFileService fileService,
+        INotificationService notificationService,
+        INavigationService navigationService)
+    {
+        _note = note;
+        _fileService = fileService;
+        _notificationService = notificationService;
+        _navigationService = navigationService;
+
+        Text = note.Text;
+    }
+
+    // Le texte en cours d'édition, lié au champ de saisie de la vue
+    [ObservableProperty]
+    private string _text = "";
+
+    // La ligne affichée en haut de l'écran
+    public string DateText
+    {
+        get
+        {
+            if (_note.Filename == null)
+            {
+                return "Nouvelle note";
+            }
+            return "Enregistrée le " + _note.Date.ToString("dd/MM/yyyy HH:mm");
+        }
+    }
+
+    // Bouton Annuler : revenir à la liste sans rien enregistrer
+    [RelayCommand]
+    private void Cancel()
+    {
+        _navigationService.NavigateToAllNotes();
+    }
+
+    // Bouton Enregistrer : écrire la note, prévenir l'utilisateur, revenir à la liste
+    [RelayCommand]
+    private void Save()
+    {
+        _note.Text = Text;
+        _fileService.SaveNote(_note);
+
+        _notificationService.Show("Note enregistrée");
+        _navigationService.NavigateToAllNotes();
+    }
+}</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — <code>ObservableObject</code>, un ViewModel qui prévient la vue</div>
+        Une vue reliée à une propriété doit être prévenue quand cette propriété change, sinon elle continue d'afficher
+        l'ancienne valeur. En .NET, ce mécanisme porte un nom&nbsp;: l'interface <code>INotifyPropertyChanged</code> et
+        son événement <code>PropertyChanged</code>. La classe de base <code>ObservableObject</code>, fournie par le
+        Toolkit, réalise cette interface&nbsp;: <code>NoteViewModel : ObservableObject</code> en hérite.
+      </div>
+      <div class="explain">
+        <div class="tagline">Code généré par le Toolkit — <code>[ObservableProperty]</code></div>
+        <p>
+          Devant le champ privé <code>_text</code>, l'attribut <code>[ObservableProperty]</code> génère une propriété
+          publique <code>Text</code> (le nom du champ, sans le <code>_</code>, avec une majuscule). En simplifiant, le
+          code généré est&nbsp;:
+        </p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Code généré (simplifié) — la propriété Text</div>
+  <div class="code-wrap"><pre class="code">public string Text
+{
+    get
+    {
+        return _text;
+    }
+    set
+    {
+        if (_text != value)
+        {
+            _text = value;
+            OnPropertyChanged("Text");   // prévient la vue
+        }
+    }
+}</pre></div>
+</div>
+        <p>
+          À chaque modification, <code>OnPropertyChanged</code> (hérité d'<code>ObservableObject</code>) déclenche
+          l'événement <code>PropertyChanged</code>&nbsp;: la vue relit la valeur. C'est pour pouvoir ajouter ce code à ta
+          classe que le générateur exige le mot <code>partial</code>, comme pour le XAML.
+        </p>
+      </div>
+      <div class="explain">
+        <div class="tagline">Code généré par le Toolkit — <code>[RelayCommand]</code></div>
+        <p>
+          Devant la méthode <code>Save()</code>, l'attribut <code>[RelayCommand]</code> génère une propriété
+          <code>SaveCommand</code>&nbsp;: une <b>commande</b> qui appelle <code>Save()</code>. En simplifiant&nbsp;:
+        </p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>Code généré (simplifié) — la commande SaveCommand</div>
+  <div class="code-wrap"><pre class="code">private RelayCommand? _saveCommand;
+
+public IRelayCommand SaveCommand
+{
+    get
+    {
+        if (_saveCommand == null)
+        {
+            // la commande appellera Save()
+            _saveCommand = new RelayCommand(Save);
+        }
+        return _saveCommand;
+    }
+}</pre></div>
+</div>
+        <p>De même, <code>Cancel()</code> donne <code>CancelCommand</code>.</p>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — la commande remplace le gestionnaire de clic</div>
+        Dans la version code-behind, un bouton appelait une méthode du code-behind
+        (<code>Click="SaveButton_Click"</code>). En MVVM, un bouton se relie à une <b>commande</b> du ViewModel&nbsp;:
+        <code>Command="{Binding SaveCommand}"</code>. Une commande est un objet qui sait s'exécuter
+        (<code>Execute</code>) et dire s'il peut l'être (<code>CanExecute</code>, au sprint 6). Le ViewModel n'a pas
+        besoin de savoir qu'un bouton existe&nbsp;: un test pourra appeler <code>SaveCommand.Execute(null)</code>
+        directement.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — une commande, c'est un peu une route</div>
+        Dans Laravel, un formulaire Blade ne contient pas le code d'enregistrement&nbsp;: il désigne une action
+        (<code>action="{{ route('notes.store') }}"</code>), et c'est le contrôleur qui fait le travail. Ici, le bouton
+        désigne une commande (<code>{Binding SaveCommand}</code>), et c'est le ViewModel qui fait le travail.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li>Le constructeur reçoit la note à éditer, puis les trois services. Il recopie le texte de la note dans la
+            propriété <code>Text</code>, que la vue affichera.</li>
+          <li><code>DateText</code> — une propriété calculée, en lecture seule (<code>get</code> seulement)&nbsp;: elle
+            reprend le <code>if</code> de <code>UpdateDisplay</code> du sprint 2. Elle n'a pas besoin de prévenir la
+            vue&nbsp;: sa valeur ne change pas tant que l'écran est affiché.</li>
+          <li><code>Save()</code> — recopie le texte dans la note, la fait enregistrer par le service, puis demande un
+            message et le retour à la liste, chacun par son contrat.</li>
+          <li><code>Cancel()</code> — revient à la liste sans toucher à la note&nbsp;: le texte modifié n'est recopié dans
+            la note que par <code>Save()</code>.</li>
+        </ul>
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (Ctrl+Maj+B)</div>
+        La solution compile. L'application fonctionne comme au sprint 4&nbsp;: personne n'utilise encore les nouvelles
+        classes.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape2">
+    <div class="part-head"><div class="part-num">2</div><h2>Étape 2 — Naviguer en changeant de ViewModel</h2></div>
+    <p class="part-sub">ViewModel principal, DataTemplate par type, commande avec paramètre, assemblage dans App.</p>
+    <div class="prose">
+
+      <h3>2.1 — Le principe</h3>
+      <p>
+        Dans la version code-behind, la fenêtre changeait d'écran en plaçant une vue dans sa zone
+        <code>MainContent</code>. En MVVM, c'est un ViewModel qui décide&nbsp;: <code>MainViewModel</code>, le ViewModel de
+        la fenêtre, expose une propriété <code>CurrentViewModel</code>. La fenêtre l'affiche, et WPF choisit la vue qui
+        correspond à son type.
+      </p>
+      <div class="diagram">
+        <svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MainViewModel expose CurrentViewModel. Le ContentControl de la fenêtre l'affiche. Un DataTemplate associe AllNotesViewModel à AllNotesView, un autre NoteViewModel à NoteView.">
+          <defs>
+            <marker id="s5-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10z" style="fill:var(--muted)" />
+            </marker>
+          </defs>
+          <rect x="20" y="86" width="170" height="78" rx="8" style="fill:var(--accent-tint);stroke:var(--accent)" stroke-width="1.5" />
+          <text x="105" y="112" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--accent-strong)">MainViewModel</text>
+          <text x="105" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink-soft)">CurrentViewModel</text>
+          <text x="105" y="150" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">l'écran demandé</text>
+
+          <rect x="222" y="86" width="178" height="78" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="311" y="112" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="15" style="fill:var(--ink)">ContentControl</text>
+          <text x="311" y="132" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" style="fill:var(--ink-soft)">{Binding CurrentViewModel}</text>
+          <text x="311" y="150" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11" style="fill:var(--muted)">dans MainWindow</text>
+
+          <text x="520" y="28" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--muted)">DataTemplate dans App.xaml</text>
+          <rect x="430" y="40" width="190" height="66" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="525" y="64" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink-soft)">AllNotesViewModel</text>
+          <text x="525" y="90" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="14" style="fill:var(--ink)">→ AllNotesView</text>
+          <rect x="430" y="144" width="190" height="66" rx="8" style="fill:var(--surface-2);stroke:var(--line)" stroke-width="1.2" />
+          <text x="525" y="168" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10.5" style="fill:var(--ink-soft)">NoteViewModel</text>
+          <text x="525" y="194" text-anchor="middle" font-family="Barlow Semi Condensed, sans-serif" font-weight="600" font-size="14" style="fill:var(--ink)">→ NoteView</text>
+
+          <path d="M190 125 L218 125" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s5-arrow)" />
+          <path d="M400 112 L426 82" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s5-arrow)" />
+          <path d="M400 138 L426 168" fill="none" style="stroke:var(--muted)" stroke-width="1.3" marker-end="url(#s5-arrow)" />
+          <text x="320" y="236" text-anchor="middle" font-family="Source Sans 3, sans-serif" font-size="11.5" style="fill:var(--ink-soft)">WPF prend le DataTemplate qui correspond au type du ViewModel affiché</text>
+        </svg>
+      </div>
+
+      <h3>2.2 — Les commandes de la liste</h3>
+      <p>Remplace le contenu de <code>AllNotesViewModel.cs</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes.Core/ViewModels/AllNotesViewModel.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.Input;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// La logique de l'écran « liste des notes », sans aucun lien avec WPF
+public partial class AllNotesViewModel
+{
+    private readonly IFileService _fileService;
+    private readonly INavigationService _navigationService;
+
+    public AllNotesViewModel(IFileService fileService, INavigationService navigationService)
+    {
+        _fileService = fileService;
+        _navigationService = navigationService;
+    }
+
+    // Les notes affichées par la vue, la plus récente en premier
+    public ObservableCollection&lt;Note&gt; Notes { get; } = new ObservableCollection&lt;Note&gt;();
+
+    // Lit les notes et remplit la collection
+    public void LoadNotes()
+    {
+        List&lt;Note&gt; notes = _fileService.GetNotes();
+        List&lt;Note&gt; sortedNotes = notes.OrderByDescending(note =&gt; note.Date).ToList();
+
+        Notes.Clear();
+        foreach (Note note in sortedNotes)
+        {
+            Notes.Add(note);
+        }
+    }
+
+    // Bouton « + » : ouvrir une note neuve
+    [RelayCommand]
+    private void NewNote()
+    {
+        Note newNote = new Note();
+        _navigationService.NavigateToNote(newNote);
+    }
+
+    // Clic sur une carte : ouvrir la note qu'elle affiche
+    [RelayCommand]
+    private void OpenNote(Note note)
+    {
+        _navigationService.NavigateToNote(note);
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li>Le constructeur reçoit en plus un <code>INavigationService</code>.</li>
+          <li><code>partial</code> — nécessaire pour que le Toolkit ajoute les commandes à la classe.</li>
+          <li><code>NewNote()</code> → <code>NewNoteCommand</code>&nbsp;: crée une note neuve et demande à l'ouvrir.</li>
+          <li><code>OpenNote(Note note)</code> → <code>OpenNoteCommand</code>&nbsp;: une commande <b>avec paramètre</b>.
+            La vue lui transmettra la note de la carte cliquée.</li>
+        </ul>
+      </div>
+
+      <h3>2.3 — Le ViewModel de la fenêtre</h3>
+      <p>Crée <code>MainViewModel</code> dans le dossier <code>ViewModels</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Core/ViewModels/MainViewModel.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.ComponentModel;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Core.ViewModels;
+
+// Le ViewModel de la fenêtre. Il expose l'écran courant, et c'est lui qui change d'écran :
+// il joue donc aussi le rôle du service de navigation.
+public partial class MainViewModel : ObservableObject, INavigationService
+{
+    private readonly IFileService _fileService;
+    private readonly INotificationService _notificationService;
+    private readonly AllNotesViewModel _allNotesViewModel;
+
+    public MainViewModel(IFileService fileService, INotificationService notificationService)
+    {
+        _fileService = fileService;
+        _notificationService = notificationService;
+
+        // La liste existe pendant toute la vie de l'application ; « this » est son service de navigation
+        _allNotesViewModel = new AllNotesViewModel(fileService, this);
+        _allNotesViewModel.LoadNotes();
+
+        // Au démarrage, on affiche la liste
+        NavigateToAllNotes();
+    }
+
+    // Le ViewModel de l'écran affiché ; la fenêtre choisit la vue qui lui correspond
+    [ObservableProperty]
+    private object? _currentViewModel;
+
+    public void NavigateToAllNotes()
+    {
+        CurrentViewModel = _allNotesViewModel;
+    }
+
+    public void NavigateToNote(Note note)
+    {
+        NoteViewModel noteViewModel = new NoteViewModel(note, _fileService, _notificationService, this);
+        CurrentViewModel = noteViewModel;
+    }
+}</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — hériter d'une classe et réaliser une interface</div>
+        <code>class MainViewModel : ObservableObject, INavigationService</code> s'écrirait en PHP
+        <code>class MainViewModel extends ObservableObject implements NavigationServiceInterface</code>. En C#, le
+        <code>:</code> sert pour les deux&nbsp;: d'abord la classe parente (une seule), puis les interfaces, séparées par
+        des virgules.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>[ObservableProperty] private object? _currentViewModel;</code> — génère la propriété
+            <code>CurrentViewModel</code>, qui prévient la fenêtre à chaque changement d'écran. Son type est
+            <code>object?</code>&nbsp;: elle contient tantôt un <code>AllNotesViewModel</code>, tantôt un
+            <code>NoteViewModel</code>.</li>
+          <li><code>new AllNotesViewModel(fileService, this)</code> — <code>MainViewModel</code> réalise
+            <code>INavigationService</code>&nbsp;: il se passe <b>lui-même</b> (<code>this</code>) comme service de
+            navigation. La liste est créée une seule fois et chargée au démarrage.</li>
+          <li><code>NavigateToNote</code> — crée un <code>NoteViewModel</code> neuf pour chaque note ouverte, et lui
+            fournit tout ce dont il a besoin.</li>
+        </ul>
+      </div>
+      <div class="watch">
+        <div class="tagline">Point de vigilance — un compromis assumé</div>
+        <code>MainViewModel</code> fait deux métiers&nbsp;: ViewModel de la fenêtre, et service de navigation. Dans un
+        projet plus grand, on écrirait une classe <code>NavigationService</code> à part. Ici, ce choix garde le code
+        court, sans changer l'essentiel&nbsp;: les autres ViewModels ne connaissent que le contrat
+        <code>INavigationService</code>.
+      </div>
+
+      <h3>2.4 — Associer chaque ViewModel à sa vue</h3>
+      <p>Remplace le contenu de <code>App.xaml</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/App.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Application
+    x:Class="WpfNotes.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    xmlns:viewModels="clr-namespace:WpfNotes.Core.ViewModels;assembly=WpfNotes.Core"
+    xmlns:views="clr-namespace:WpfNotes.Views"&gt;
+    &lt;!-- Pas de StartupUri : c'est App.xaml.cs qui crée la fenêtre --&gt;
+    &lt;Application.Resources&gt;
+        &lt;ResourceDictionary&gt;
+            &lt;ResourceDictionary.MergedDictionaries&gt;
+                &lt;materialDesign:BundledTheme
+                    BaseTheme="Light"
+                    PrimaryColor="DeepPurple"
+                    SecondaryColor="Lime" /&gt;
+                &lt;ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesign3.Defaults.xaml" /&gt;
+            &lt;/ResourceDictionary.MergedDictionaries&gt;
+
+            &lt;!-- Pour chaque type de ViewModel, la vue qui l'affiche --&gt;
+            &lt;DataTemplate DataType="{x:Type viewModels:AllNotesViewModel}"&gt;
+                &lt;views:AllNotesView /&gt;
+            &lt;/DataTemplate&gt;
+            &lt;DataTemplate DataType="{x:Type viewModels:NoteViewModel}"&gt;
+                &lt;views:NoteView /&gt;
+            &lt;/DataTemplate&gt;
+        &lt;/ResourceDictionary&gt;
+    &lt;/Application.Resources&gt;
+&lt;/Application&gt;</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — le <code>DataTemplate</code> associé à un type</div>
+        Au sprint 3, un <code>DataTemplate</code> décrivait l'apparence d'une note dans la liste. Placé dans les
+        ressources de l'application avec <code>DataType="{x:Type …}"</code>, il devient une règle générale&nbsp;:
+        «&nbsp;chaque fois qu'un objet de ce type doit être affiché, utilise cette vue&nbsp;». Quand
+        <code>CurrentViewModel</code> contient un <code>NoteViewModel</code>, WPF crée donc une <code>NoteView</code> et
+        lui donne ce ViewModel pour <code>DataContext</code>.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>xmlns:viewModels="clr-namespace:WpfNotes.Core.ViewModels;assembly=WpfNotes.Core"</code> — un préfixe
+            pour les classes d'un <b>autre projet</b>&nbsp;: <code>assembly=</code> nomme la bibliothèque.</li>
+          <li><code>StartupUri</code> a disparu&nbsp;: la fenêtre a maintenant besoin d'un ViewModel pour exister. C'est
+            <code>App.xaml.cs</code> qui la créera, en 2.6.</li>
+        </ul>
+      </div>
+
+      <h3>2.5 — La notification et la fenêtre</h3>
+      <p>
+        La réalisation de <code>INotificationService</code> utilise le Snackbar&nbsp;: elle vit donc dans le projet WPF.
+        Crée un dossier <code>Services</code> dans <code>WpfNotes</code>&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes/Services/NotificationService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using MaterialDesignThemes.Wpf;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Services;
+
+// L'implémentation réelle de INotificationService : le Snackbar de MaterialDesign.
+// Elle vit dans le projet WPF, la seule partie de l'application qui connaît MaterialDesign.
+public class NotificationService : INotificationService
+{
+    private readonly SnackbarMessageQueue _messageQueue;
+
+    public NotificationService(SnackbarMessageQueue messageQueue)
+    {
+        _messageQueue = messageQueue;
+    }
+
+    public void Show(string message)
+    {
+        _messageQueue.Enqueue(message);
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        La classe reçoit la file de messages du Snackbar (<code>SnackbarMessageQueue</code>) et y ajoute chaque message.
+        C'est, avec la fenêtre, la seule classe de l'application qui sache qu'un Snackbar existe.
+      </div>
+      <p>Remplace le contenu de <code>MainWindow.xaml</code> et de <code>MainWindow.xaml.cs</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/MainWindow.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;Window
+    x:Class="WpfNotes.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+    Title="WpfNotes"
+    Width="900"
+    Height="600"
+    WindowStartupLocation="CenterScreen"
+    Background="{DynamicResource MaterialDesignPaper}"
+    FontFamily="{materialDesign:MaterialDesignFont}"
+    TextElement.Foreground="{DynamicResource MaterialDesignBody}"&gt;
+
+    &lt;DockPanel&gt;
+
+        &lt;!-- Barre d'application : le titre --&gt;
+        &lt;materialDesign:ColorZone
+            Padding="16"
+            DockPanel.Dock="Top"
+            Mode="PrimaryMid"&gt;
+            &lt;TextBlock FontSize="20" Text="Mes notes" /&gt;
+        &lt;/materialDesign:ColorZone&gt;
+
+        &lt;Grid&gt;
+            &lt;!-- L'écran courant : WPF choisit la vue grâce aux DataTemplate de App.xaml --&gt;
+            &lt;ContentControl Content="{Binding CurrentViewModel}" /&gt;
+
+            &lt;!-- Zone de notification ; sa file de messages est donnée par App.xaml.cs --&gt;
+            &lt;materialDesign:Snackbar x:Name="MainSnackbar" VerticalAlignment="Bottom" /&gt;
+        &lt;/Grid&gt;
+
+    &lt;/DockPanel&gt;
+&lt;/Window&gt;</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/MainWindow.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using MaterialDesignThemes.Wpf;
+using WpfNotes.Core.ViewModels;
+
+namespace WpfNotes;
+
+public partial class MainWindow : Window
+{
+    // Plus aucune logique ici : la fenêtre reçoit son ViewModel et la file de messages du Snackbar
+    public MainWindow(MainViewModel viewModel, SnackbarMessageQueue messageQueue)
+    {
+        InitializeComponent();
+
+        DataContext = viewModel;
+        MainSnackbar.MessageQueue = messageQueue;
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>&lt;ContentControl Content="{Binding CurrentViewModel}" /&gt;</code> — la zone d'écran affiche le
+            ViewModel courant, sous la forme choisie par les <code>DataTemplate</code>.</li>
+          <li>La fenêtre reçoit son ViewModel et la file du Snackbar dans son constructeur. Elle partage cette file avec
+            <code>NotificationService</code>&nbsp;: les messages ajoutés par le service s'affichent dans ce
+            Snackbar.</li>
+        </ul>
+      </div>
+
+      <h3>2.6 — Assembler l'application dans <code>App</code></h3>
+      <p>Remplace le contenu de <code>App.xaml.cs</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/App.xaml.cs</div>
+  <div class="code-wrap"><pre class="code">using System.Windows;
+using MaterialDesignThemes.Wpf;
+using WpfNotes.Core.Services;
+using WpfNotes.Core.ViewModels;
+using WpfNotes.Services;
+
+namespace WpfNotes;
+
+public partial class App : Application
+{
+    protected override void OnStartup(StartupEventArgs e)
+    {
+        base.OnStartup(e);
+
+        // On assemble l'application à la main : chaque objet reçoit ce dont il a besoin
+        IFileService fileService = new FileService();
+        SnackbarMessageQueue messageQueue = new SnackbarMessageQueue(TimeSpan.FromSeconds(2));
+        INotificationService notificationService = new NotificationService(messageQueue);
+        MainViewModel mainViewModel = new MainViewModel(fileService, notificationService);
+
+        MainWindow mainWindow = new MainWindow(mainViewModel, messageQueue);
+        mainWindow.Show();
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>protected override void OnStartup(…)</code> — redéfinit une méthode de la classe parente
+            <code>Application</code>, appelée au lancement. <code>override</code> signale qu'on remplace une méthode
+            héritée&nbsp;; PHP le fait sans mot-clé. <code>base.OnStartup(e);</code> appelle d'abord la version d'origine,
+            comme <code>parent::</code> en PHP.</li>
+          <li>Les objets sont créés dans l'ordre&nbsp;: chacun reçoit ceux dont il a besoin, qui doivent donc exister
+            avant lui. C'est l'<b>assemblage</b> de l'application, le seul endroit qui nomme les classes concrètes.</li>
+          <li><code>TimeSpan.FromSeconds(2)</code> — chaque message reste affiché deux secondes.</li>
+        </ul>
+      </div>
+
+      <h3>2.7 — Les vues</h3>
+      <p>Remplace le contenu de <code>AllNotesView.xaml</code>&nbsp;: les cartes redeviennent des boutons, et le bouton «&nbsp;+&nbsp;» revient.</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/Views/AllNotesView.xaml</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.Views.AllNotesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;Grid&gt;
+        &lt;ScrollViewer VerticalScrollBarVisibility="Auto"&gt;
+            &lt;!-- La collection Notes du ViewModel, une carte par note --&gt;
+            &lt;ItemsControl Margin="8" ItemsSource="{Binding Notes}"&gt;
+
+                &lt;ItemsControl.ItemsPanel&gt;
+                    &lt;ItemsPanelTemplate&gt;
+                        &lt;WrapPanel /&gt;
+                    &lt;/ItemsPanelTemplate&gt;
+                &lt;/ItemsControl.ItemsPanel&gt;
+
+                &lt;ItemsControl.ItemTemplate&gt;
+                    &lt;DataTemplate&gt;
+                        &lt;!-- La carte est un bouton : sa commande est celle du ViewModel de la liste,
+                             et son paramètre la note qu'elle affiche --&gt;
+                        &lt;Button
+                            Height="Auto"
+                            Margin="8"
+                            Padding="0"
+                            Command="{Binding DataContext.OpenNoteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding}"
+                            Style="{StaticResource MaterialDesignFlatButton}"&gt;
+                            &lt;materialDesign:Card
+                                Width="220"
+                                Height="160"
+                                Padding="16"&gt;
+                                &lt;DockPanel&gt;
+                                    &lt;TextBlock
+                                        DockPanel.Dock="Bottom"
+                                        FontSize="12"
+                                        Opacity="0.7"
+                                        Text="{Binding Date, StringFormat='dd/MM/yyyy HH:mm'}" /&gt;
+                                    &lt;TextBlock
+                                        Text="{Binding Text}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="Wrap" /&gt;
+                                &lt;/DockPanel&gt;
+                            &lt;/materialDesign:Card&gt;
+                        &lt;/Button&gt;
+                    &lt;/DataTemplate&gt;
+                &lt;/ItemsControl.ItemTemplate&gt;
+
+            &lt;/ItemsControl&gt;
+        &lt;/ScrollViewer&gt;
+
+        &lt;!-- Visible seulement quand la collection est vide --&gt;
+        &lt;TextBlock
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Opacity="0.7"
+            Text="Aucune note. Cliquez sur + pour en créer une."&gt;
+            &lt;TextBlock.Style&gt;
+                &lt;Style TargetType="TextBlock"&gt;
+                    &lt;Setter Property="Visibility" Value="Collapsed" /&gt;
+                    &lt;Style.Triggers&gt;
+                        &lt;DataTrigger Binding="{Binding Notes.Count}" Value="0"&gt;
+                            &lt;Setter Property="Visibility" Value="Visible" /&gt;
+                        &lt;/DataTrigger&gt;
+                    &lt;/Style.Triggers&gt;
+                &lt;/Style&gt;
+            &lt;/TextBlock.Style&gt;
+        &lt;/TextBlock&gt;
+
+        &lt;!-- Bouton flottant « Nouvelle note » --&gt;
+        &lt;Button
+            Margin="24"
+            HorizontalAlignment="Right"
+            VerticalAlignment="Bottom"
+            Command="{Binding NewNoteCommand}"
+            Style="{StaticResource MaterialDesignFloatingActionButton}"
+            ToolTip="Nouvelle note"&gt;
+            &lt;materialDesign:PackIcon
+                Width="24"
+                Height="24"
+                Kind="Plus" /&gt;
+        &lt;/Button&gt;
+    &lt;/Grid&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — atteindre la commande depuis une carte</div>
+        Dans le <code>DataTemplate</code> d'une carte, le <code>DataContext</code> est la <b>note</b> de la carte. Or la
+        commande <code>OpenNoteCommand</code> appartient au ViewModel de la <b>liste</b>. Le Binding remonte donc
+        l'arbre&nbsp;: <code>RelativeSource={RelativeSource AncestorType=ItemsControl}</code> désigne l'<code>ItemsControl</code>
+        qui contient la carte, et <code>DataContext.OpenNoteCommand</code> prend la commande dans son
+        <code>DataContext</code>, le ViewModel de la liste. <code>CommandParameter="{Binding}"</code> transmet à la
+        commande la note de la carte elle-même.
+      </div>
+      <p>Crée enfin la vue d'une note, <code>Views/NoteView.xaml</code>&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="xaml"></i>WpfNotes/Views/NoteView.xaml — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">&lt;UserControl
+    x:Class="WpfNotes.Views.NoteView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"&gt;
+
+    &lt;DockPanel Margin="16"&gt;
+
+        &lt;!-- En bas : les boutons, reliés aux commandes du NoteViewModel --&gt;
+        &lt;StackPanel
+            Margin="0,16,0,0"
+            HorizontalAlignment="Right"
+            DockPanel.Dock="Bottom"
+            Orientation="Horizontal"&gt;
+            &lt;Button
+                Margin="0,0,8,0"
+                Command="{Binding CancelCommand}"
+                Content="Annuler"
+                Style="{StaticResource MaterialDesignFlatButton}" /&gt;
+            &lt;Button Command="{Binding SaveCommand}" Content="Enregistrer" /&gt;
+        &lt;/StackPanel&gt;
+
+        &lt;!-- En haut : la date d'enregistrement --&gt;
+        &lt;TextBlock
+            Margin="0,0,0,8"
+            DockPanel.Dock="Top"
+            FontSize="12"
+            Opacity="0.7"
+            Text="{Binding DateText}" /&gt;
+
+        &lt;!-- Au centre : le texte, relié dans les deux sens à la propriété Text du ViewModel --&gt;
+        &lt;TextBox
+            VerticalContentAlignment="Top"
+            materialDesign:HintAssist.Hint="Votre note"
+            AcceptsReturn="True"
+            Style="{StaticResource MaterialDesignOutlinedTextBox}"
+            Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+            TextWrapping="Wrap"
+            VerticalScrollBarVisibility="Auto" /&gt;
+    &lt;/DockPanel&gt;
+&lt;/UserControl&gt;</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>WpfNotes/Views/NoteView.xaml.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using System.Windows.Controls;
+
+namespace WpfNotes.Views;
+
+public partial class NoteView : UserControl
+{
+    public NoteView()
+    {
+        InitializeComponent();
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"</code> — un Binding <b>dans les deux
+            sens</b>&nbsp;: le champ affiche <code>Text</code>, et chaque frappe met à jour <code>Text</code> dans le
+            ViewModel. <code>UpdateSourceTrigger=PropertyChanged</code> fait la mise à jour à chaque caractère, au lieu
+            d'attendre que le champ perde le focus.</li>
+          <li>Les boutons n'ont plus de <code>Click</code>&nbsp;: <code>Command="{Binding SaveCommand}"</code> et
+            <code>Command="{Binding CancelCommand}"</code>.</li>
+          <li>Plus aucun <code>x:Name</code>&nbsp;: le code-behind n'a plus rien à manipuler.</li>
+        </ul>
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        <ol>
+          <li>La liste s'affiche, comme au sprint 4, avec le bouton «&nbsp;+&nbsp;».</li>
+          <li>Clique sur «&nbsp;+&nbsp;»&nbsp;: l'écran d'une note affiche «&nbsp;Nouvelle note&nbsp;». Annuler ramène à la
+            liste.</li>
+          <li>Clique sur une carte&nbsp;: la note s'ouvre, avec sa date. Modifie le texte et enregistre&nbsp;: «&nbsp;Note
+            enregistrée&nbsp;» s'affiche, tu reviens à la liste, et la carte montre le nouveau texte.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape3">
+    <div class="part-head"><div class="part-num">3</div><h2>Étape 3 — Un problème à résoudre</h2></div>
+    <p class="part-sub">Pourquoi une note neuve n'apparaît pas dans la liste.</p>
+    <div class="prose">
+      <div class="checkpoint">
+        <div class="tagline">À tester (F5)</div>
+        Crée une note neuve et enregistre-la. Le message «&nbsp;Note enregistrée&nbsp;» s'affiche… mais la carte
+        n'apparaît pas dans la liste. Ferme l'application et relance-la&nbsp;: la note est bien là.
+      </div>
+      <p>Le fichier a été écrit&nbsp;: c'est la <b>liste</b> qui n'est pas à jour. Trois faits l'expliquent.</p>
+      <div class="explain">
+        <ol>
+          <li><code>MainViewModel</code> crée <code>AllNotesViewModel</code> une seule fois, et ne le charge qu'au
+            démarrage.</li>
+          <li><code>NoteViewModel</code> enregistre la note, mais ne connaît pas la liste&nbsp;: il ne peut pas lui
+            ajouter la nouvelle note.</li>
+          <li>Pour une note <b>existante</b>, tout semble marcher&nbsp;: la carte et l'écran partagent le même objet
+            <code>Note</code> (une référence, comme au sprint 2), et la vue de la liste est recréée à chaque retour.
+            Mais la carte ne remonte pas en tête de liste.</li>
+        </ol>
+      </div>
+      <p>Plusieurs solutions sont possibles&nbsp;:</p>
+      <div class="explain">
+        <ul>
+          <li>Recharger toute la liste à chaque retour, comme la version code-behind&nbsp;: simple, mais on relit le
+            disque à chaque fois.</li>
+          <li>Donner à <code>NoteViewModel</code> une référence vers <code>AllNotesViewModel</code>&nbsp;: les deux
+            ViewModels deviendraient liés l'un à l'autre, et chacun serait plus difficile à tester seul.</li>
+          <li>Faire <b>envoyer un message</b> par <code>NoteViewModel</code>&nbsp;: «&nbsp;cette note vient d'être
+            enregistrée&nbsp;». Qui veut l'entendre l'écoute&nbsp;; l'émetteur ne sait pas qui le reçoit. C'est la solution
+            du sprint 6.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="bilan">
+    <div class="part-head"><div class="part-num">4</div><h2>Bilan des notions vues</h2></div>
+    <div class="prose">
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Notion</th><th>Étape</th><th>Rôle dans le TP</th></tr></thead>
+          <tbody>
+            <tr><td>Générateur de code</td><td class="step">1</td><td>Le Toolkit écrit le code répétitif à partir d'un attribut.</td></tr>
+            <tr><td>ObservableObject</td><td class="step">1</td><td>La classe de base qui prévient la vue des changements.</td></tr>
+            <tr><td>[ObservableProperty]</td><td class="step">1</td><td>Un champ privé devient une propriété qui prévient la vue.</td></tr>
+            <tr><td>[RelayCommand]</td><td class="step">1</td><td>Une méthode devient une commande que la vue peut exécuter.</td></tr>
+            <tr><td>Commande</td><td class="step">1</td><td>Remplace le gestionnaire de clic&nbsp;; exécutable depuis un test.</td></tr>
+            <tr><td>: Classe, Interface</td><td class="step">2</td><td>Hériter d'une classe et réaliser une interface à la fois.</td></tr>
+            <tr><td>CurrentViewModel</td><td class="step">2</td><td>Changer d'écran en changeant de ViewModel.</td></tr>
+            <tr><td>DataTemplate par type</td><td class="step">2</td><td>WPF choisit la vue d'après le type du ViewModel.</td></tr>
+            <tr><td>RelativeSource</td><td class="step">2</td><td>Atteindre la commande de la liste depuis une carte.</td></tr>
+            <tr><td>Binding dans les deux sens</td><td class="step">2</td><td>Le champ de saisie met à jour <code>Text</code> à chaque frappe.</td></tr>
+            <tr><td>override</td><td class="step">2</td><td><code>OnStartup</code>&nbsp;: remplacer une méthode héritée.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="git">
+    <div class="part-head"><div class="part-num">5</div><h2>Fin de sprint&nbsp;: commit &amp; tag</h2></div>
+    <div class="prose">
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine de la solution</div>
+  <div class="code-wrap"><pre class="code">git add .
+git commit -m "Sprint 5 : éditer une note, commandes, navigation et notifications"
+git tag sprint-05</pre></div>
+</div>
+      <p>
+        Le dépôt de référence <code>NoteApp</code> contient ce même état au tag <code>sprint-05</code> de la branche
+        <code>main</code>.
+      </p>
+      <p class="sprintnav"><a href="../sprint-04/guide-sprint-04.html">← Sprint 4 — Séparer la logique</a><a href="../sprint-06/guide-sprint-06.html">Sprint 6 — Supprimer et prévenir la liste →</a></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>NoteApp · Version MVVM — Guide TP sprint 5, éditer une note</p>
+  </footer>
+
+</div>

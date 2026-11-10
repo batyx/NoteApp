@@ -1,0 +1,64 @@
+// NoteApp/Sprint 4 - Séparer la logique : quiz de validation (10 questions, QCM à réponse unique, sans pénalité)
+// Import Moodle : Banque de questions > Importer > format GIFT, encodage UTF-8
+
+$CATEGORY: NoteApp/Sprint 4 - Séparer la logique
+
+::S4-01 [facile]:: [plain]Dans une application MVVM, où se trouve la logique d'un écran (quelles notes afficher, que faire au clic) ? {
+~Dans la vue, c'est-à-dire le fichier XAML et son code-behind. #C'était le cas de la version code-behind. En MVVM, la vue se contente d'afficher.
+=Dans le ViewModel, une classe C\# ordinaire sans type WPF. #Exact \: AllNotesViewModel contient la logique de la liste, et ne connaît pas la vue.
+~Dans le modèle, la classe Note. #Le modèle porte les données (texte, date, fichier), pas la logique d'un écran.
+}
+
+::S4-02 [facile]:: [plain]Pourquoi la bibliothèque WpfNotes.Core cible-t-elle net10.0, et non net10.0-windows ? {
+=Pour que le compilateur y refuse tout type WPF ou MaterialDesign. #Exact \: la séparation entre logique et interface est garantie par le compilateur, pas par la discipline.
+~Parce qu'une bibliothèque de classes ne peut pas cibler Windows. #Une bibliothèque peut cibler net10.0-windows ; on choisit volontairement de ne pas le faire.
+~Parce que net10.0 compile plus vite que net10.0-windows. #La vitesse n'est pas en cause \: il s'agit de rendre WPF inaccessible à la logique.
+}
+
+::S4-03 [facile]:: [plain]À quoi correspond, en PHP, le « \: » de public class FileService \: IFileService ? {
+~À extends \: FileService hérite d'une classe parente. #IFileService est une interface, pas une classe \: FileService la réalise.
+~À use \: FileService importe un trait nommé IFileService. #Un trait ajoute du code ; une interface n'en contient pas.
+=À implements \: FileService réalise l'interface IFileService. #Exact \: le compilateur vérifie que les trois méthodes du contrat sont présentes.
+}
+
+::S4-04 [moyen]:: [plain]Pourquoi le constructeur d'AllNotesViewModel attend-il un IFileService plutôt qu'un FileService ? {
+~Parce qu'un paramètre de type interface rend l'appel plus rapide. #Les performances ne changent pas \: c'est une question de souplesse.
+=Pour accepter n'importe quelle réalisation de ce contrat. #Exact \: FileService dans l'application, un fake dans les tests. Le ViewModel ne connaît que le contrat.
+~Parce que C\# interdit de passer une classe concrète à un constructeur. #C'est autorisé ; on choisit l'interface pour ne pas dépendre d'une réalisation précise.
+}
+
+::S4-05 [moyen]:: [plain]Pour la collection Notes affichée par la vue, quelle est la différence entre une List<Note> et une ObservableCollection<Note> ? {
+~Une ObservableCollection trie automatiquement ses éléments par date. #Elle ne trie rien \: c'est LoadNotes qui trie avant de la remplir.
+~Une List ne peut pas contenir d'objets Note, seulement des textes. #Une List<Note> contient des Note ; le problème est ailleurs.
+=L'ObservableCollection prévient la vue de chacun de ses changements. #Exact \: à chaque ajout ou suppression, l'écran se met à jour. Une List ne prévient personne.
+}
+
+::S4-06 [moyen]:: [plain]Que fait la ligne DataContext \= viewModel; dans le constructeur de MainWindow ? {
+=Elle fait du ViewModel la source de ses Binding. #Exact \: la fenêtre et ses éléments enfants. AllNotesView hérite du même DataContext, d'où \{Binding Notes\}.
+~Elle copie les notes dans la fenêtre. #Rien n'est copié \: la vue lit les propriétés du ViewModel par Binding.
+~Elle crée la vue AllNotesView à partir du ViewModel. #La vue est créée par le XAML de la fenêtre ; DataContext lui donne seulement sa source de données.
+}
+
+::S4-07 [moyen]:: [plain]Qu'est-ce qui caractérise les méthodes déclarées dans une interface comme IFileService ? {
+~Elles doivent être privées, pour cacher leur fonctionnement. #Dans une interface, les méthodes sont toutes publiques \: c'est le contrat visible.
+=Elles n'ont pas de corps, seulement une signature. #Exact \: la signature se termine par un point-virgule, et c'est la classe qui réalise l'interface qui fournit le code.
+~Elles doivent toutes renvoyer une valeur, jamais void. #SaveNote et DeleteNote renvoient void ; le type de retour est libre.
+}
+
+::S4-08 [difficile]:: [plain]Dans AllNotesView.xaml, on écrit \{Binding Note\} au lieu de \{Binding Notes\}. Que se passe-t-il ? {
+~La compilation échoue \: la propriété Note n'existe pas dans le ViewModel. #Le XAML ne vérifie pas les noms des Binding à la compilation.
+~L'application s'arrête au lancement sur une exception. #Aucune exception \: un Binding qui ne trouve rien est simplement ignoré.
+=Tout compile, mais la liste reste vide, sans aucune erreur visible. #Exact \: aucune erreur à l'écran, mais WPF signale l'erreur de Binding dans la fenêtre Sortie de Visual Studio, le premier endroit à regarder quand un écran n'affiche pas ce qu'il devrait.
+}
+
+::S4-09 [moyen]:: [plain]À quoi sert le DataTrigger sur Notes.Count dans AllNotesView.xaml ? {
+=À afficher « Aucune note. » quand la liste est vide. #Exact \: sans code-behind. La collection prévient de ses changements, et le message apparaît ou disparaît tout seul.
+~À compter les notes dans le ViewModel, à chaque modification de la liste. #Le comptage est fait par la collection (Count) ; le DataTrigger ne fait que lire cette valeur.
+~À trier les cartes par date, directement dans la vue. #Le tri est fait par LoadNotes, dans le ViewModel.
+}
+
+::S4-10 [difficile]:: [plain]Au sprint 4, à quel endroit l'application choisit-elle d'utiliser FileService plutôt qu'une autre réalisation de IFileService ? {
+~Dans AllNotesViewModel, qui crée son service dans son constructeur. #Le ViewModel ne crée rien \: il reçoit le service, sans connaître sa classe.
+=Dans MainWindow, au moment d'assembler les objets avec new FileService(). #Exact \: c'est la seule ligne qui nomme FileService. Au sprint 7, ce choix passera au conteneur.
+~Dans l'interface IFileService, qui désigne sa réalisation par défaut. #Une interface ne connaît pas ses réalisations.
+}

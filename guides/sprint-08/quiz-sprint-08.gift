@@ -1,0 +1,64 @@
+// NoteApp/Sprint 8 - Tests unitaires : quiz de validation (10 questions, QCM à réponse unique, sans pénalité)
+// Import Moodle : Banque de questions > Importer > format GIFT, encodage UTF-8
+
+$CATEGORY: NoteApp/Sprint 8 - Tests unitaires
+
+::S8-01 [facile]:: [plain]Avec xUnit, quel attribut désigne une méthode de test ? {
+=[Fact] #Exact \: xUnit exécute toute méthode marquée [Fact].
+~[Test] #C'est l'attribut de NUnit, un autre framework de test.
+~[TestMethod] #C'est l'attribut de MSTest, un autre framework de test.
+}
+
+::S8-02 [facile]:: [plain]Pourquoi le projet WpfNotes.Tests ne référence-t-il que WpfNotes.Core ? {
+~Parce que xUnit refuse de référencer un projet qui utilise WPF. #Ce serait possible ; c'est simplement inutile.
+=Parce que toute la logique à tester s'y trouve, sans WPF. #Exact \: les tests tournent sans écran. C'est la règle d'or du sprint 4 qui paie.
+~Pour que la solution compile plus vite. #La raison est la séparation entre logique et interface, pas la vitesse.
+}
+
+::S8-03 [moyen]:: [plain]Dans quel ordre passe-t-on les arguments d'Assert.Equal ? {
+~La valeur obtenue, puis la valeur attendue. #C'est l'inverse \: l'ordre compte pour que le message d'échec soit juste.
+~Dans n'importe quel ordre \: le résultat est le même. #Le test réussit ou échoue de la même façon, mais le message d'échec inverserait les valeurs.
+=La valeur attendue, puis la valeur obtenue, comme assertEquals en PHPUnit. #Exact \: Assert.Equal(1, _navigationService.NavigatedToAllNotesCount).
+}
+
+::S8-04 [moyen]:: [plain]Qu'est-ce qu'un fake, comme FakeDialogService ? {
+=Une autre réalisation d'une interface, qui fait semblant. #Exact \: écrite pour les tests, elle retient ce qu'on lui demande. FakeDialogService répond ce que le test a décidé et compte les appels.
+~Un test qui réussit toujours, pour remplir l'Explorateur de tests. #Un fake n'est pas un test \: c'est une doublure utilisée par les tests.
+~Une copie de DialogService, qui ouvre une vraie boîte de dialogue. #Un fake n'ouvre rien \: c'est justement ce qui le rend utilisable dans un test.
+}
+
+::S8-05 [moyen]:: [plain]Pourquoi chaque classe de tests crée-t-elle un new WeakReferenceMessenger() plutôt que d'utiliser WeakReferenceMessenger.Default ? {
+~Parce que WeakReferenceMessenger.Default n'existe pas dans un projet de tests. #Il existe partout ; on évite simplement de le partager.
+=Pour que chaque test ait son propre Messenger. #Exact \: sans interférence entre tests. Avec l'instance partagée, un abonnement d'un test pourrait recevoir les messages d'un autre.
+~Parce qu'un Messenger neuf envoie les messages plus vite. #La vitesse n'est pas en cause \: c'est l'isolation des tests.
+}
+
+::S8-06 [moyen]:: [plain]Comment xUnit empêche-t-il deux tests d'une même classe de se gêner ? {
+~En exécutant les tests dans l'ordre alphabétique de leur nom. #L'ordre n'est pas garanti, et ne protégerait de rien.
+~En remettant à zéro les champs static de la classe après chaque test. #xUnit ne touche pas aux champs static.
+=En créant un nouvel objet de la classe de tests pour chaque test. #Exact \: les champs (fakes, Messenger) sont neufs à chaque test.
+}
+
+::S8-07 [moyen]:: [plain]Un test marqué [Theory] porte trois attributs [InlineData]. Que se passe-t-il ? {
+=Le même test est exécuté trois fois, une fois par jeu de données. #Exact \: comme un data provider de PHPUnit.
+~Il faut écrire trois méthodes de test, une par attribut. #Une seule méthode suffit \: ses paramètres reçoivent chaque jeu de données.
+~Le test est ignoré tant qu'il n'est pas marqué [Fact]. #[Theory] suffit à le rendre exécutable.
+}
+
+::S8-08 [moyen]:: [plain]Pourquoi le test DeleteCommand_WhenUserSaysNo_DeletesNothing est-il une méthode async Task ? {
+~Parce que toutes les méthodes de test xUnit doivent être asynchrones depuis .NET 10. #La plupart des tests de NoteApp sont des méthodes void ordinaires.
+=Parce que DeleteCommand est asynchrone, et qu'il faut attendre sa fin. #Exact \: avec await ExecuteAsync(null). Sans attendre, le test vérifierait le résultat avant la fin de la commande.
+~Pour que le test s'exécute plus vite, en parallèle des autres. #async ne sert pas à accélérer le test.
+}
+
+::S8-09 [difficile]:: [plain]Que fait la ligne _dialogService.ConfirmAsync(Arg.Any<string>()).Returns(false); dans un test NSubstitute ? {
+~Elle vérifie que ConfirmAsync a été appelée, avec n'importe quel message. #La vérification s'écrit avec Received() ; ici, on programme une réponse.
+~Elle appelle ConfirmAsync et vérifie qu'elle renvoie false. #Rien n'est vérifié \: on dit au mock comment répondre plus tard.
+=Elle programme le mock \: quel que soit le message, ConfirmAsync répondra false. #Exact \: c'est l'équivalent du réglage Answer \= false du fake.
+}
+
+::S8-10 [difficile]:: [plain]Dans quel cas un mock NSubstitute est-il plus pratique qu'un fake écrit à la main ? {
+=Pour vérifier une interaction \: tel appel, avec tel argument. #Exact \: Received(1).Show("Note supprimée") se lit directement dans le test.
+~Pour simuler un état, comme une liste de notes gardée en mémoire entre deux appels. #C'est le point fort du fake \: FakeFileService garde ses notes.
+~Jamais \: un mock fait moins de choses qu'un fake. #Les deux se combinent \: on choisit selon ce qu'on veut vérifier.
+}

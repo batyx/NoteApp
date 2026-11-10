@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="fr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NoteApp — Sprint 8, les tests unitaires</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light}
+:root{
+  --bg:#f5f3fa;
+  --surface:#ffffff;
+  --surface-2:#efebf8;
+  --ink:#211b34;
+  --ink-soft:#4a4360;
+  --muted:#726b8c;
+  --accent:#4c2d84;
+  --accent-strong:#341f5c;
+  --accent-tint:#eae3f8;
+  --lime:#5c8a29;
+  --lime-tint:#e9f3da;
+  --line:#e1dbf0;
+  --code-bg:#1e1b2b;
+  --code-header:#171420;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#9b7ee8;
+  --danger:#a6192e;
+  --danger-tint:#fbe7ea;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(33,27,52,.06), 0 8px 24px -12px rgba(33,27,52,.18);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15121f;
+    --surface:#1c1830;
+    --surface-2:#241f3d;
+    --ink:#efe9fb;
+    --ink-soft:#cabfe6;
+    --muted:#9186ad;
+    --accent:#b394f0;
+    --accent-strong:#d6c2ff;
+    --accent-tint:#2c2350;
+    --lime:#a5d66b;
+    --lime-tint:#26301c;
+    --line:#332a52;
+    --code-bg:#100e1a;
+    --code-header:#0b0a13;
+    --code-fg:#e8e3f5;
+    --code-muted:#8b83a8;
+    --code-accent:#b394f0;
+    --danger:#ff8fa3;
+    --danger-tint:#3a1b23;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15121f;
+  --surface:#1c1830;
+  --surface-2:#241f3d;
+  --ink:#efe9fb;
+  --ink-soft:#cabfe6;
+  --muted:#9186ad;
+  --accent:#b394f0;
+  --accent-strong:#d6c2ff;
+  --accent-tint:#2c2350;
+  --lime:#a5d66b;
+  --lime-tint:#26301c;
+  --line:#332a52;
+  --code-bg:#100e1a;
+  --code-header:#0b0a13;
+  --code-fg:#e8e3f5;
+  --code-muted:#8b83a8;
+  --code-accent:#b394f0;
+  --danger:#ff8fa3;
+  --danger-tint:#3a1b23;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  font-size:16.5px;line-height:1.62;
+}
+h1,h2,h3,h4{
+  font-family:"Barlow Semi Condensed","Segoe UI",sans-serif;
+  font-weight:700;color:var(--ink);text-wrap:balance;margin:0;
+}
+code, pre, .mono{font-family:"JetBrains Mono",Consolas,monospace;}
+::selection{background:var(--accent-tint);}
+a{color:var(--accent);}
+p{margin:0 0 14px;}
+p:last-child{margin-bottom:0;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.topbar-inner{
+  max-width:840px;margin:0 auto;padding:10px 24px;
+  display:flex;align-items:center;gap:18px;
+}
+.brand{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:14.5px;
+  letter-spacing:.02em;white-space:nowrap;color:var(--ink);
+  display:flex;align-items:center;gap:8px;flex:0 0 auto;
+}
+.brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);display:inline-block;}
+.pillnav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;}
+.pillnav::-webkit-scrollbar{display:none;}
+.pillnav a{
+  flex:0 0 auto;font-size:12px;font-weight:600;color:var(--muted);
+  text-decoration:none;padding:6px 9px;border-radius:999px;border:1px solid transparent;
+  white-space:nowrap;transition:background .15s,color .15s;
+}
+.pillnav a:hover{background:var(--surface-2);color:var(--ink);}
+
+.container{max-width:840px;margin:0 auto;padding:0 24px;}
+.prose{max-width:680px;}
+
+/* ---------- Header ---------- */
+.pageintro{padding:44px 0 8px;}
+.eyebrow{
+  font-size:12.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 10px;
+}
+.pageintro h1{font-size:clamp(27px,4vw,38px);line-height:1.08;max-width:22ch;margin-bottom:14px;}
+.pageintro p.lede{max-width:62ch;color:var(--ink-soft);font-size:16.5px;}
+
+.metastrip{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;margin:28px 0 40px;
+}
+.metacell{background:var(--surface);padding:13px 16px;}
+.metacell .lbl{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.metacell .val{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--ink-soft);}
+@media (max-width:640px){.metastrip{grid-template-columns:1fr 1fr;}}
+
+/* ---------- Part sections ---------- */
+.part{scroll-margin-top:64px;padding:6px 0 46px;border-bottom:1px solid var(--line);}
+.part:last-of-type{border-bottom:none;}
+.part-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px;}
+.part-num{
+  font-family:"Barlow Semi Condensed",sans-serif;font-weight:700;font-size:15px;
+  color:var(--surface);background:var(--accent);
+  width:30px;height:30px;border-radius:8px;flex:0 0 auto;
+  display:flex;align-items:center;justify-content:center;
+}
+.part-head h2{font-size:23px;}
+.part-sub{margin:0 0 18px 44px;color:var(--muted);font-size:14.5px;}
+.part > .prose > h3{font-size:16.5px;margin:28px 0 10px;color:var(--ink);}
+.part > .prose > h3:first-child{margin-top:0;}
+
+/* ---------- Recurring blocks ---------- */
+.tagline{
+  display:block;font-size:11px;font-weight:700;
+  letter-spacing:.07em;text-transform:uppercase;padding:3px 0;margin-bottom:8px;
+}
+.concept{
+  background:var(--accent-tint);border-radius:0 8px 8px 0;border-left:3px solid var(--accent);
+  padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.concept .tagline{color:var(--accent-strong);}
+.concept b{color:var(--ink);}
+
+.explain{
+  background:var(--surface-2);border-radius:8px;padding:14px 18px;margin:0 0 16px;
+  font-size:14.5px;color:var(--ink-soft);
+}
+.explain .tagline{color:var(--muted);}
+.explain code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.92em;color:var(--ink);}
+.explain b{color:var(--ink);}
+.explain ul,.explain ol{margin:8px 0 0;padding-left:20px;}
+.explain li{margin-bottom:6px;}
+.explain li:last-child{margin-bottom:0;}
+
+.watch{
+  border-left:3px solid var(--danger);background:var(--danger-tint);border-radius:0 8px 8px 0;
+  padding:14px 18px;margin:16px 0;font-size:14.5px;color:var(--ink-soft);
+}
+.watch .tagline{color:var(--danger);}
+.watch b{color:var(--ink);}
+.watch code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+
+.checkpoint{
+  border:1px dashed var(--lime);border-radius:8px;padding:14px 18px;margin:20px 0 0;
+  background:var(--lime-tint);font-size:14.5px;color:var(--ink-soft);
+}
+.checkpoint .tagline{color:var(--lime);}
+.checkpoint b{color:var(--ink);}
+.checkpoint code{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:1px 5px;font-size:.9em;color:var(--ink);}
+.checkpoint ol{margin:8px 0 0;padding-left:20px;}
+.checkpoint li{margin-bottom:5px;}
+
+p code, li code, .prose > p code{
+  background:var(--surface-2);border:1px solid var(--line);border-radius:4px;
+  padding:1px 5px;font-size:.9em;color:var(--accent-strong);font-weight:500;
+}
+
+/* ---------- Code blocks ---------- */
+.code-block{border-radius:9px;overflow:hidden;border:1px solid var(--line);margin:14px 0 16px;box-shadow:var(--shadow);}
+.code-file{
+  background:var(--code-header);color:var(--code-muted);font-family:"JetBrains Mono",monospace;
+  font-size:11.5px;padding:8px 14px;display:flex;align-items:center;gap:8px;
+}
+.code-file i{width:8px;height:8px;border-radius:50%;display:inline-block;flex:0 0 auto;}
+.code-file i.cs{background:var(--code-accent);}
+.code-file i.xaml{background:#e8a04e;}
+.code-file i.cfg{background:var(--lime);}
+.code-file i.new{background:var(--lime);}
+.code-wrap{background:var(--code-bg);overflow-x:auto;}
+pre.code{margin:0;padding:15px 16px;font-family:"JetBrains Mono",monospace;font-size:12.6px;line-height:1.62;color:var(--code-fg);white-space:pre;tab-size:4;}
+
+/* ---------- Diagram ---------- */
+.diagram{border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:14px;margin:14px 0 16px;box-shadow:var(--shadow);}
+.diagram svg{width:100%;height:auto;display:block;}
+
+.recap{width:100%;border-collapse:collapse;font-size:14px;margin:14px 0;}
+.recap th,.recap td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top;}
+.recap th{background:var(--surface-2);font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;font-size:14px;}
+.recap-wrap{overflow-x:auto;border-radius:8px;}
+.recap td:first-child{font-family:"JetBrains Mono",monospace;font-size:12.5px;color:var(--accent-strong);white-space:nowrap;}
+.recap td.step{font-family:"Barlow Semi Condensed",sans-serif;font-weight:600;color:var(--muted);white-space:nowrap;}
+
+footer{padding:24px 0 60px;}
+footer p{margin:0;font-size:13px;color:var(--muted);}
+
+/* ---------- Depuis PHP (pont avec ce que les étudiants connaissent) ---------- */
+.bridge{
+  background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--lime);
+  border-radius:0 8px 8px 0;padding:14px 18px;margin:16px 0;font-size:15px;color:var(--ink-soft);
+}
+.bridge .tagline{color:var(--lime);}
+.bridge b{color:var(--ink);}
+.bridge p code,.bridge li code{color:var(--ink);}
+.bridge ul{margin:8px 0 0;padding-left:20px;}
+.bridge li{margin-bottom:5px;}
+.bridge .code-block{margin:10px 0 0;box-shadow:none;}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+.compare .code-block{margin:0;}
+@media (max-width:700px){.compare{grid-template-columns:1fr;}}
+.code-file i.php{background:#8892bf;}
+
+/* ---------- Navigation entre sprints ---------- */
+.sprintnav{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0 0;font-size:14px;}
+.sprintnav a{text-decoration:none;font-weight:600;}
+.compare pre.code{font-size:11.2px;padding:12px 12px;}
+</style>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <span class="brand"><span class="dot"></span>NoteApp · Guide TP MVVM</span>
+    <nav class="pillnav" aria-label="Navigation des parties">
+      <a href="#depart">Départ</a>
+      <a href="#etape1">Étape 1</a>
+      <a href="#etape2">Étape 2</a>
+      <a href="#etape3">Étape 3</a>
+      <a href="#etape4">Étape 4</a>
+      <a href="#etape5">Étape 5</a>
+      <a href="#bilan">Bilan</a>
+      <a href="#git">Git</a>
+    </nav>
+  </div>
+</div>
+
+<div class="container">
+
+  <header class="pageintro">
+    <p class="eyebrow">NoteApp · Version MVVM · Sprint 8 (5 sur 5)</p>
+    <h1>Les tests unitaires</h1>
+    <p class="lede">
+      Au sprint 3, tester la suppression d'une note était impossible. Depuis, la logique a quitté les écrans, chaque
+      service se cache derrière une interface, et chaque classe reçoit ses dépendances. Dans ce dernier sprint, tu
+      récoltes&nbsp;: un projet de tests xUnit, des services factices écrits à la main, puis la même chose avec la
+      bibliothèque NSubstitute.
+    </p>
+    <div class="metastrip">
+      <div class="metacell"><div class="lbl">Point de départ</div><div class="val">tag sprint-07</div></div>
+      <div class="metacell"><div class="lbl">Point d'arrivée</div><div class="val">tag sprint-08</div></div>
+      <div class="metacell"><div class="lbl">Nouveau projet</div><div class="val">WpfNotes.Tests</div></div>
+      <div class="metacell"><div class="lbl">Tests</div><div class="val">11 avec fakes, 3 avec mocks</div></div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <section class="part" id="depart">
+    <div class="part-head"><div class="part-num">0</div><h2>Où en est-on&nbsp;? Que va-t-on faire&nbsp;?</h2></div>
+    <div class="prose">
+      <p>Reprenons les obstacles relevés au sprint 3, et ce qui les a levés&nbsp;:</p>
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Obstacle du sprint 3</th><th>Ce qui l'a levé</th></tr></thead>
+          <tbody>
+            <tr><td>La logique vit dans les écrans</td><td>Les ViewModels, dans <code>WpfNotes.Core</code>, sans WPF (sprints 4 à 6)</td></tr>
+            <tr><td>Accès direct au disque</td><td><code>IFileService</code> (sprint 4)</td></tr>
+            <tr><td>Navigation par la fenêtre</td><td><code>INavigationService</code> (sprint 5)</td></tr>
+            <tr><td>Snackbar et DialogHost appelés directement</td><td><code>INotificationService</code>, <code>IDialogService</code> (sprints 5 et 6)</td></tr>
+            <tr><td>Objets créés avec new partout</td><td>Dépendances reçues par le constructeur, assemblées par le conteneur (sprint 7)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Il ne reste qu'à écrire les tests. Pour ce sprint&nbsp;: cinq étapes.</p>
+      <div class="explain">
+        <ul>
+          <li><b>Étape 1</b> — créer le projet de tests.</li>
+          <li><b>Étape 2</b> — écrire les services factices (<em>fakes</em>).</li>
+          <li><b>Étape 3</b> — tester <code>NoteViewModel</code>, y compris la suppression «&nbsp;impossible&nbsp;» du sprint 3.</li>
+          <li><b>Étape 4</b> — tester <code>AllNotesViewModel</code>.</li>
+          <li><b>Étape 5</b> — réécrire trois tests avec NSubstitute, et comparer.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape1">
+    <div class="part-head"><div class="part-num">1</div><h2>Étape 1 — Le projet de tests</h2></div>
+    <p class="part-sub">xUnit, référence vers la seule bibliothèque, anatomie d'un test.</p>
+    <div class="prose">
+      <div class="explain">
+        <div class="tagline">Étapes dans Visual Studio</div>
+        <ol>
+          <li>Clic droit sur la solution → Ajouter → Nouveau projet… → <b>Projet de test xUnit</b> (C#).</li>
+          <li>Nom&nbsp;: <code>WpfNotes.Tests</code>. Framework&nbsp;: .NET 10.0.</li>
+          <li>Supprime le fichier <code>UnitTest1.cs</code> généré.</li>
+          <li>Clic droit sur <code>WpfNotes.Tests</code> → Ajouter → Référence de projet… → coche
+            <b>seulement</b> <code>WpfNotes.Core</code>.</li>
+        </ol>
+      </div>
+      <p>Pour avoir les mêmes versions que le dépôt de référence, remplace le contenu de <code>WpfNotes.Tests.csproj</code> par&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>WpfNotes.Tests/WpfNotes.Tests.csproj — version de l'étape 1</div>
+  <div class="code-wrap"><pre class="code">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;IsPackable&gt;false&lt;/IsPackable&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" /&gt;
+    &lt;PackageReference Include="xunit" Version="2.9.3" /&gt;
+    &lt;PackageReference Include="xunit.runner.visualstudio" Version="3.1.0" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;Using Include="Xunit" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;ProjectReference Include="..\WpfNotes.Core\WpfNotes.Core.csproj" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>xunit</code> — le framework de test&nbsp;: les attributs <code>[Fact]</code>, <code>[Theory]</code>
+            et la classe <code>Assert</code>.</li>
+          <li><code>Microsoft.NET.Test.Sdk</code> et <code>xunit.runner.visualstudio</code> — ce qui permet à Visual
+            Studio (et à <code>dotnet test</code>) de trouver et lancer les tests.</li>
+          <li><code>&lt;Using Include="Xunit" /&gt;</code> — ajoute <code>using Xunit;</code> dans tous les fichiers du
+            projet.</li>
+          <li><code>IsPackable</code> = <code>false</code> — ce projet ne sera jamais distribué.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Notion — les tests ne référencent que la bibliothèque</div>
+        Le projet de tests cible <code>net10.0</code> et ne connaît que <code>WpfNotes.Core</code>&nbsp;: aucune
+        fenêtre, aucun contrôle, aucun MaterialDesign. C'est la règle d'or du sprint 4 qui paie&nbsp;: tout ce qui mérite
+        d'être testé est dans la bibliothèque. Ces tests peuvent même tourner sur un serveur Linux, sans écran.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — un test xUnit et un test PHPUnit</div>
+        <div class="compare">
+<div class="code-block">
+  <div class="code-file"><i class="php"></i>PHPUnit</div>
+  <div class="code-wrap"><pre class="code">class NoteTest extends TestCase
+{
+    public function test_texte_par_defaut(): void
+    {
+        // Arrange
+        $note = new Note();
+
+        // Act
+        $text = $note-&gt;text;
+
+        // Assert
+        $this-&gt;assertEquals('', $text);
+    }
+}</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="cs"></i>xUnit</div>
+  <div class="code-wrap"><pre class="code">public class NoteTests
+{
+    [Fact]
+    public void Text_ByDefault_IsEmpty()
+    {
+        // Arrange
+        Note note = new Note();
+
+        // Act
+        string text = note.Text;
+
+        // Assert
+        Assert.Equal("", text);
+    }
+}</pre></div>
+</div>
+        </div>
+        <ul>
+          <li>Pas de classe parente&nbsp;: c'est l'attribut <code>[Fact]</code> qui désigne une méthode de test.</li>
+          <li><code>$this-&gt;assertEquals</code> devient <code>Assert.Equal</code>, avec le même ordre&nbsp;: la valeur
+            attendue d'abord, la valeur obtenue ensuite.</li>
+          <li>Les trois temps <b>Arrange</b> (préparer), <b>Act</b> (agir), <b>Assert</b> (vérifier) sont les mêmes.</li>
+          <li>Convention de nommage des tests de ce guide&nbsp;: <code>Méthode_Situation_RésultatAttendu</code>.</li>
+        </ul>
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (Ctrl+Maj+B)</div>
+        La solution compile avec ses trois projets. Ouvre l'<b>Explorateur de tests</b> (Affichage → Explorateur de
+        tests)&nbsp;: il est encore vide.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape2">
+    <div class="part-head"><div class="part-num">2</div><h2>Étape 2 — Les services factices</h2></div>
+    <p class="part-sub">Fake, la seconde réalisation de chaque interface.</p>
+    <div class="prose">
+      <div class="concept">
+        <div class="tagline">Notion — le fake, une doublure de test</div>
+        Pour tester <code>NoteViewModel</code>, il faut lui fournir ses services. Les vrais touchent au disque ou
+        affichent des fenêtres. On écrit donc des <b>fakes</b>&nbsp;: d'autres réalisations des mêmes interfaces, qui
+        font semblant et retiennent ce qu'on leur a demandé. C'est la promesse faite à chaque nouvelle interface depuis
+        le sprint 4&nbsp;: le ViewModel respecte le contrat, et accepte donc n'importe quelle réalisation.
+      </div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — les fakes de Laravel</div>
+        Laravel en fournit tout prêts&nbsp;: <code>Storage::fake()</code> remplace le disque par un disque en mémoire,
+        <code>Mail::fake()</code> retient les mails au lieu de les envoyer, <code>Event::fake()</code> retient les
+        événements. Ici, on les écrit soi-même, ce qui montre qu'il n'y a là rien de magique.
+      </div>
+      <p>Dans <code>WpfNotes.Tests</code>, crée un dossier <code>Fakes</code> et quatre classes&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Tests/Fakes/FakeFileService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Tests.Fakes;
+
+// Un faux service de fichiers : les notes restent en mémoire, aucun fichier n'est touché
+public class FakeFileService : IFileService
+{
+    private int _counter = 0;
+
+    // Les notes « enregistrées ». Un test peut en ajouter avant d'agir.
+    public List&lt;Note&gt; Notes { get; } = new List&lt;Note&gt;();
+
+    // Les noms de fichiers supprimés, dans l'ordre
+    public List&lt;string&gt; DeletedFilenames { get; } = new List&lt;string&gt;();
+
+    public List&lt;Note&gt; GetNotes()
+    {
+        List&lt;Note&gt; copy = new List&lt;Note&gt;(Notes);
+        return copy;
+    }
+
+    public void SaveNote(Note note)
+    {
+        if (note.Filename == null)
+        {
+            _counter = _counter + 1;
+            note.Filename = "note-" + _counter + ".txt";
+        }
+
+        // Une date fixe : un test ne doit pas dépendre de l'heure à laquelle il s'exécute
+        note.Date = new DateTime(2026, 1, 1, 12, 0, 0);
+
+        if (!Notes.Contains(note))
+        {
+            Notes.Add(note);
+        }
+    }
+
+    public void DeleteNote(string filename)
+    {
+        DeletedFilenames.Add(filename);
+    }
+}</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Tests/Fakes/FakeDialogService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Services;
+
+namespace WpfNotes.Tests.Fakes;
+
+// Une fausse boîte de dialogue : elle répond ce que le test a décidé, sans rien afficher
+public class FakeDialogService : IDialogService
+{
+    // La réponse que donnera « l'utilisateur »
+    public bool Answer { get; set; }
+
+    // Le nombre de fois où une confirmation a été demandée
+    public int CallCount { get; private set; }
+
+    public Task&lt;bool&gt; ConfirmAsync(string message)
+    {
+        CallCount = CallCount + 1;
+        return Task.FromResult(Answer);
+    }
+}</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Tests/Fakes/FakeNotificationService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Services;
+
+namespace WpfNotes.Tests.Fakes;
+
+// Un faux service de notification : il garde les messages au lieu de les afficher
+public class FakeNotificationService : INotificationService
+{
+    public List&lt;string&gt; Messages { get; } = new List&lt;string&gt;();
+
+    public void Show(string message)
+    {
+        Messages.Add(message);
+    }
+}</pre></div>
+</div>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Tests/Fakes/FakeNavigationService.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+
+namespace WpfNotes.Tests.Fakes;
+
+// Un faux service de navigation : il retient les écrans demandés au lieu de les afficher
+public class FakeNavigationService : INavigationService
+{
+    // Le nombre de retours à la liste demandés
+    public int NavigatedToAllNotesCount { get; private set; }
+
+    // La dernière note qu'on a demandé d'ouvrir, ou null si aucune
+    public Note? LastOpenedNote { get; private set; }
+
+    public void NavigateToAllNotes()
+    {
+        NavigatedToAllNotesCount = NavigatedToAllNotesCount + 1;
+    }
+
+    public void NavigateToNote(Note note)
+    {
+        LastOpenedNote = note;
+    }
+}</pre></div>
+</div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>FakeFileService</code> — garde les notes dans une liste, et retient les noms de fichiers supprimés.
+            La date est toujours la même&nbsp;: un test doit donner le même résultat à chaque exécution.
+            <code>new List&lt;Note&gt;(Notes)</code> renvoie une copie de la liste, comme le ferait le vrai service.</li>
+          <li><code>FakeDialogService</code> — c'est le test qui choisit la réponse de «&nbsp;l'utilisateur&nbsp;»
+            (<code>Answer</code>). <code>Task.FromResult(Answer)</code> crée une tâche déjà terminée, avec cette
+            réponse&nbsp;: pas d'attente réelle.</li>
+          <li><code>FakeNotificationService</code> et <code>FakeNavigationService</code> — ils retiennent les messages
+            et les écrans demandés, pour que le test puisse les vérifier.</li>
+          <li><code>{ get; private set; }</code> — une propriété qu'on peut lire de partout, mais modifier seulement depuis
+            sa propre classe&nbsp;: le test lit le compteur, il ne le trafique pas.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape3">
+    <div class="part-head"><div class="part-num">3</div><h2>Étape 3 — Tester <code>NoteViewModel</code></h2></div>
+    <p class="part-sub">Fact, Assert, commandes, messages, test asynchrone.</p>
+    <div class="prose">
+      <p>Crée un dossier <code>ViewModels</code> dans <code>WpfNotes.Tests</code>, puis la classe de tests&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Tests/ViewModels/NoteViewModelTests.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.Messaging;
+using WpfNotes.Core.Messages;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.ViewModels;
+using WpfNotes.Tests.Fakes;
+
+namespace WpfNotes.Tests.ViewModels;
+
+// Les tests de NoteViewModel, avec des fakes écrits à la main.
+// xUnit crée un nouvel objet de cette classe pour CHAQUE test : les champs ci-dessous
+// sont donc neufs à chaque fois, et les tests ne peuvent pas se gêner entre eux.
+public class NoteViewModelTests
+{
+    private readonly FakeFileService _fileService = new FakeFileService();
+    private readonly FakeDialogService _dialogService = new FakeDialogService();
+    private readonly FakeNotificationService _notificationService = new FakeNotificationService();
+    private readonly FakeNavigationService _navigationService = new FakeNavigationService();
+
+    // Un Messenger neuf pour chaque test, au lieu de WeakReferenceMessenger.Default partagé
+    private readonly IMessenger _messenger = new WeakReferenceMessenger();
+
+    // Crée le ViewModel à tester, avec tous les fakes
+    private NoteViewModel CreateViewModel(Note note)
+    {
+        NoteViewModel viewModel = new NoteViewModel(
+            note, _fileService, _dialogService, _notificationService, _navigationService, _messenger);
+        return viewModel;
+    }
+
+    // Test 1 — Modifier le texte prévient la vue
+    [Fact]
+    public void Text_WhenChanged_RaisesPropertyChanged()
+    {
+        // Arrange
+        NoteViewModel viewModel = CreateViewModel(new Note());
+
+        // Act et Assert : l'action doit déclencher PropertyChanged pour la propriété "Text"
+        Assert.PropertyChanged(viewModel, "Text", () =&gt; viewModel.Text = "Bonjour");
+    }
+
+    // Test 2 — Supprimer est grisé pour une note neuve
+    [Fact]
+    public void DeleteCommand_ForNewNote_CannotExecute()
+    {
+        // Arrange
+        NoteViewModel viewModel = CreateViewModel(new Note());
+
+        // Act
+        bool canExecute = viewModel.DeleteCommand.CanExecute(null);
+
+        // Assert
+        Assert.False(canExecute);
+    }
+
+    // Test 3 — Enregistrer écrit la note
+    [Fact]
+    public void SaveCommand_WritesNoteToFileService()
+    {
+        // Arrange
+        NoteViewModel viewModel = CreateViewModel(new Note());
+        viewModel.Text = "Bonjour";
+
+        // Act
+        viewModel.SaveCommand.Execute(null);
+
+        // Assert
+        Note savedNote = Assert.Single(_fileService.Notes);
+        Assert.Equal("Bonjour", savedNote.Text);
+    }
+
+    // Test 4 — Enregistrer prévient la liste par un message
+    [Fact]
+    public void SaveCommand_SendsNoteSavedMessage()
+    {
+        // Arrange : le test s'abonne lui-même au message
+        NoteSavedMessage? receivedMessage = null;
+        _messenger.Register&lt;NoteSavedMessage&gt;(this, (recipient, message) =&gt; receivedMessage = message);
+        NoteViewModel viewModel = CreateViewModel(new Note());
+        viewModel.Text = "Bonjour";
+
+        // Act
+        viewModel.SaveCommand.Execute(null);
+
+        // Assert
+        Assert.NotNull(receivedMessage);
+        Assert.Equal("Bonjour", receivedMessage.Note.Text);
+    }
+
+    // Test 5 — Enregistrer revient à la liste
+    [Fact]
+    public void SaveCommand_NavigatesBackToList()
+    {
+        // Arrange
+        NoteViewModel viewModel = CreateViewModel(new Note());
+
+        // Act
+        viewModel.SaveCommand.Execute(null);
+
+        // Assert
+        Assert.Equal(1, _navigationService.NavigatedToAllNotesCount);
+    }
+
+    // Test 6 — Annuler revient à la liste sans rien enregistrer
+    [Fact]
+    public void CancelCommand_NavigatesBackWithoutSaving()
+    {
+        // Arrange
+        NoteViewModel viewModel = CreateViewModel(new Note());
+        viewModel.Text = "Brouillon";
+
+        // Act
+        viewModel.CancelCommand.Execute(null);
+
+        // Assert
+        Assert.Empty(_fileService.Notes);
+        Assert.Equal(1, _navigationService.NavigatedToAllNotesCount);
+    }
+
+    // Test 7 — Supprimer, puis répondre « non » : rien n'est supprimé
+    [Fact]
+    public async Task DeleteCommand_WhenUserSaysNo_DeletesNothing()
+    {
+        // Arrange : le fake répondra « non »
+        _dialogService.Answer = false;
+        Note note = new Note();
+        note.Filename = "note-1.txt";
+        NoteViewModel viewModel = CreateViewModel(note);
+
+        // Act : la commande est asynchrone, on attend qu'elle se termine
+        await viewModel.DeleteCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Equal(1, _dialogService.CallCount);
+        Assert.Empty(_fileService.DeletedFilenames);
+        Assert.Empty(_notificationService.Messages);
+    }
+
+    // Test 8 — Supprimer, puis répondre « oui » : la note est supprimée, et tout le monde est prévenu
+    [Fact]
+    public async Task DeleteCommand_WhenUserSaysYes_DeletesNotifiesAndNavigates()
+    {
+        // Arrange
+        _dialogService.Answer = true;
+        Note note = new Note();
+        note.Filename = "note-1.txt";
+        NoteViewModel viewModel = CreateViewModel(note);
+
+        // Act
+        await viewModel.DeleteCommand.ExecuteAsync(null);
+
+        // Assert
+        Assert.Contains("note-1.txt", _fileService.DeletedFilenames);
+        Assert.Single(_notificationService.Messages);
+        Assert.Equal(1, _navigationService.NavigatedToAllNotesCount);
+    }
+}</pre></div>
+</div>
+      <div class="concept">
+        <div class="tagline">Notion — un objet neuf pour chaque test</div>
+        xUnit crée un <b>nouvel objet</b> <code>NoteViewModelTests</code> avant chaque test. Les champs (les fakes, le
+        Messenger) sont donc neufs à chaque fois&nbsp;: un test ne peut pas hériter de ce qu'un autre a laissé. C'est
+        pour cela qu'on utilise un <code>new WeakReferenceMessenger()</code> par test, et non l'instance partagée
+        <code>WeakReferenceMessenger.Default</code> de l'application.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>CreateViewModel(Note note)</code> — une méthode d'aide qui fournit au ViewModel tous les fakes. C'est
+            le même assemblage qu'au sprint 5, avec d'autres réalisations.</li>
+          <li><b>Test 1</b> — <code>Assert.PropertyChanged(objet, "Text", action)</code> exécute l'action et vérifie
+            qu'elle déclenche <code>PropertyChanged</code> pour <code>Text</code>. <code>() =&gt; viewModel.Text = "Bonjour"</code>
+            est une fonction fléchée <b>sans paramètre</b>, comme <code>fn() =&gt; …</code> en PHP.</li>
+          <li><b>Test 2</b> — la règle «&nbsp;une note neuve ne se supprime pas&nbsp;» se teste directement, par
+            <code>CanExecute</code>. Au sprint 3, elle était cachée dans le code-behind.</li>
+          <li><b>Tests 3, 5, 6</b> — <code>SaveCommand.Execute(null)</code> exécute la commande comme le ferait le
+            bouton&nbsp;; <code>null</code> parce qu'elle n'a pas de paramètre. <code>Assert.Single</code> vérifie qu'il y a
+            exactement un élément, et le renvoie.</li>
+          <li><b>Test 4</b> — le test s'abonne lui-même au message avec <code>_messenger.Register</code>. La fonction
+            fléchée <code>(recipient, message) =&gt; receivedMessage = message</code> reçoit deux paramètres et range le
+            message dans une variable locale, que l'on vérifie ensuite.</li>
+          <li><b>Tests 7 et 8</b> — la commande Supprimer est asynchrone&nbsp;: le test est une méthode
+            <code>async Task</code>, et attend la fin de la commande avec <code>await DeleteCommand.ExecuteAsync(null)</code>.
+            <code>_dialogService.Answer</code> joue le rôle de l'utilisateur.</li>
+        </ul>
+      </div>
+      <div class="concept">
+        <div class="tagline">Retour au sprint 3 — le test impossible</div>
+        Le test 7, «&nbsp;Supprimer, puis répondre non&nbsp;: rien n'est supprimé&nbsp;», est exactement celui qu'on
+        n'arrivait pas à écrire au sprint 3. Il tient maintenant en une quinzaine de lignes, s'exécute en quelques
+        millisecondes, et ne touche ni au disque ni à l'écran.
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (Explorateur de tests)</div>
+        <ol>
+          <li>Dans l'Explorateur de tests, clique sur «&nbsp;Exécuter tous les tests&nbsp;»&nbsp;: les 8 tests passent au
+            vert.</li>
+          <li>Vérifie qu'un test sait échouer&nbsp;: dans <code>NoteViewModel.Save()</code>, mets en commentaire la ligne
+            <code>_navigationService.NavigateToAllNotes();</code>, puis relance les tests. Le test 5 passe au rouge, et
+            son message dit ce qui était attendu et ce qui a été obtenu. Remets la ligne.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape4">
+    <div class="part-head"><div class="part-num">4</div><h2>Étape 4 — Tester <code>AllNotesViewModel</code></h2></div>
+    <p class="part-sub">Test paramétré, boucle for, simuler un message.</p>
+    <div class="prose">
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Tests/ViewModels/AllNotesViewModelTests.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.Messaging;
+using WpfNotes.Core.Messages;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.ViewModels;
+using WpfNotes.Tests.Fakes;
+
+namespace WpfNotes.Tests.ViewModels;
+
+// Les tests de AllNotesViewModel, avec des fakes écrits à la main
+public class AllNotesViewModelTests
+{
+    private readonly FakeFileService _fileService = new FakeFileService();
+    private readonly FakeNavigationService _navigationService = new FakeNavigationService();
+    private readonly IMessenger _messenger = new WeakReferenceMessenger();
+
+    private AllNotesViewModel CreateViewModel()
+    {
+        AllNotesViewModel viewModel = new AllNotesViewModel(_fileService, _navigationService, _messenger);
+        return viewModel;
+    }
+
+    // Test 9 — Charger remplit la liste, quel que soit le nombre de notes.
+    // [Theory] : le même test est exécuté une fois par ligne [InlineData].
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(3)]
+    public void LoadNotes_FillsNotesFromFileService(int noteCount)
+    {
+        // Arrange
+        for (int i = 1; i &lt;= noteCount; i++)
+        {
+            Note note = new Note();
+            note.Filename = "note-" + i + ".txt";
+            _fileService.Notes.Add(note);
+        }
+        AllNotesViewModel viewModel = CreateViewModel();
+
+        // Act
+        viewModel.LoadNotes();
+
+        // Assert
+        Assert.Equal(noteCount, viewModel.Notes.Count);
+    }
+
+    // Test 10 — Recevoir « note supprimée » retire la note de la liste
+    [Fact]
+    public void ReceiveNoteDeletedMessage_RemovesNoteFromList()
+    {
+        // Arrange : deux notes dans la liste
+        Note firstNote = new Note();
+        firstNote.Filename = "note-1.txt";
+        Note secondNote = new Note();
+        secondNote.Filename = "note-2.txt";
+        _fileService.Notes.Add(firstNote);
+        _fileService.Notes.Add(secondNote);
+        AllNotesViewModel viewModel = CreateViewModel();
+        viewModel.LoadNotes();
+
+        // Act : on envoie le message, comme le ferait NoteViewModel
+        _messenger.Send(new NoteDeletedMessage(firstNote));
+
+        // Assert
+        Note remainingNote = Assert.Single(viewModel.Notes);
+        Assert.Equal("note-2.txt", remainingNote.Filename);
+    }
+
+    // Test 11 — Le bouton « + » ouvre une note neuve
+    [Fact]
+    public void NewNoteCommand_NavigatesToNewNote()
+    {
+        // Arrange
+        AllNotesViewModel viewModel = CreateViewModel();
+
+        // Act
+        viewModel.NewNoteCommand.Execute(null);
+
+        // Assert : une note a été ouverte, et elle n'a pas encore de fichier
+        Assert.NotNull(_navigationService.LastOpenedNote);
+        Assert.Null(_navigationService.LastOpenedNote.Filename);
+    }
+}</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — <code>[Theory]</code>, c'est un <em>data provider</em></div>
+        Avec PHPUnit, un <em>data provider</em> (<code>#[DataProvider('counts')]</code>) exécute le même test avec
+        plusieurs jeux de données. <code>[Theory]</code> fait la même chose, et chaque <code>[InlineData(…)]</code> fournit
+        un jeu&nbsp;: le test 9 est exécuté trois fois, avec 0, 1 et 3 notes.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>for (int i = 1; i &lt;= noteCount; i++)</code> — la même boucle <code>for</code> qu'en PHP, avec le type
+            de la variable. <code>"note-" + i + ".txt"</code> assemble un texte et un nombre.</li>
+          <li><b>Test 10</b> — <code>_messenger.Send(…)</code> simule ce que ferait <code>NoteViewModel</code>&nbsp;: le test
+            vérifie la réaction de la liste sans faire intervenir l'écran d'une note.</li>
+          <li><b>Test 11</b> — la commande du bouton «&nbsp;+&nbsp;» demande l'ouverture d'une note qui n'a pas encore de
+            fichier.</li>
+        </ul>
+      </div>
+      <div class="checkpoint">
+        <div class="tagline">À tester (Explorateur de tests)</div>
+        13 tests passent&nbsp;: les 8 de l'étape 3, et les 3 de cette étape, dont le test 9 compté trois fois.
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="etape5">
+    <div class="part-head"><div class="part-num">5</div><h2>Étape 5 — Les mêmes tests avec NSubstitute</h2></div>
+    <p class="part-sub">Mock, réponse programmée, vérification d'appel.</p>
+    <div class="prose">
+      <p>
+        Écrire un fake à la main est instructif, mais répétitif. Une bibliothèque de <b>mocks</b> fabrique ces
+        doublures à la volée. Installe le package NuGet <code>NSubstitute</code>, version <code>5.3.0</code>, dans
+        <code>WpfNotes.Tests</code>&nbsp;:
+      </p>
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>WpfNotes.Tests/WpfNotes.Tests.csproj</div>
+  <div class="code-wrap"><pre class="code">&lt;Project Sdk="Microsoft.NET.Sdk"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net10.0&lt;/TargetFramework&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;IsPackable&gt;false&lt;/IsPackable&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" /&gt;
+    &lt;PackageReference Include="NSubstitute" Version="5.3.0" /&gt;
+    &lt;PackageReference Include="xunit" Version="2.9.3" /&gt;
+    &lt;PackageReference Include="xunit.runner.visualstudio" Version="3.1.0" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;Using Include="Xunit" /&gt;
+  &lt;/ItemGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;ProjectReference Include="..\WpfNotes.Core\WpfNotes.Core.csproj" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;</pre></div>
+</div>
+      <p>Crée un dossier <code>WithMocks</code> et la classe&nbsp;:</p>
+<div class="code-block">
+  <div class="code-file"><i class="new"></i>WpfNotes.Tests/WithMocks/NoteViewModelMockTests.cs — nouveau fichier</div>
+  <div class="code-wrap"><pre class="code">using CommunityToolkit.Mvvm.Messaging;
+using NSubstitute;
+using WpfNotes.Core.Models;
+using WpfNotes.Core.Services;
+using WpfNotes.Core.ViewModels;
+
+namespace WpfNotes.Tests.WithMocks;
+
+// Les tests 3, 7 et 8 réécrits avec NSubstitute, à comparer avec leur version à fakes
+public class NoteViewModelMockTests
+{
+    // Substitute.For&lt;T&gt;() fabrique un objet qui respecte l'interface, sans écrire de classe
+    private readonly IFileService _fileService = Substitute.For&lt;IFileService&gt;();
+    private readonly IDialogService _dialogService = Substitute.For&lt;IDialogService&gt;();
+    private readonly INotificationService _notificationService = Substitute.For&lt;INotificationService&gt;();
+    private readonly INavigationService _navigationService = Substitute.For&lt;INavigationService&gt;();
+    private readonly IMessenger _messenger = new WeakReferenceMessenger();
+
+    private NoteViewModel CreateViewModel(Note note)
+    {
+        NoteViewModel viewModel = new NoteViewModel(
+            note, _fileService, _dialogService, _notificationService, _navigationService, _messenger);
+        return viewModel;
+    }
+
+    // Test 3 avec un mock — vérifier l'argument reçu
+    [Fact]
+    public void SaveCommand_WritesNoteWithItsText()
+    {
+        // Arrange
+        NoteViewModel viewModel = CreateViewModel(new Note());
+        viewModel.Text = "Bonjour";
+
+        // Act
+        viewModel.SaveCommand.Execute(null);
+
+        // Assert : SaveNote a été appelée une fois, avec une note dont le texte est "Bonjour"
+        _fileService.Received(1).SaveNote(Arg.Is&lt;Note&gt;(note =&gt; note.Text == "Bonjour"));
+    }
+
+    // Test 7 avec un mock — configurer une réponse
+    [Fact]
+    public async Task DeleteCommand_WhenUserSaysNo_DeletesNothing()
+    {
+        // Arrange : « quand on te demande une confirmation, quelle que soit la question, réponds non »
+        _dialogService.ConfirmAsync(Arg.Any&lt;string&gt;()).Returns(false);
+        Note note = new Note();
+        note.Filename = "note-1.txt";
+        NoteViewModel viewModel = CreateViewModel(note);
+
+        // Act
+        await viewModel.DeleteCommand.ExecuteAsync(null);
+
+        // Assert : DeleteNote n'a jamais été appelée
+        _fileService.DidNotReceive().DeleteNote(Arg.Any&lt;string&gt;());
+    }
+
+    // Test 8 avec un mock — vérifier qu'un appel a eu lieu une seule fois
+    [Fact]
+    public async Task DeleteCommand_WhenUserSaysYes_NotifiesOnce()
+    {
+        // Arrange
+        _dialogService.ConfirmAsync(Arg.Any&lt;string&gt;()).Returns(true);
+        Note note = new Note();
+        note.Filename = "note-1.txt";
+        NoteViewModel viewModel = CreateViewModel(note);
+
+        // Act
+        await viewModel.DeleteCommand.ExecuteAsync(null);
+
+        // Assert
+        _notificationService.Received(1).Show("Note supprimée");
+    }
+}</pre></div>
+</div>
+      <div class="bridge">
+        <div class="tagline">Depuis PHP — comme Mockery</div>
+        Avec Mockery, tu écrirais <code>$dialog-&gt;shouldReceive('confirm')-&gt;andReturn(false);</code> puis
+        <code>$files-&gt;shouldNotReceive('deleteNote');</code>. NSubstitute s'écrit presque pareil, en appelant
+        directement la méthode&nbsp;: <code>_dialogService.ConfirmAsync(…).Returns(false);</code>.
+      </div>
+      <div class="explain">
+        <div class="tagline">Ce que fait ce code</div>
+        <ul>
+          <li><code>Substitute.For&lt;IFileService&gt;()</code> — fabrique un objet qui réalise l'interface, sans écrire de
+            classe. Par défaut, ses méthodes ne font rien et renvoient une valeur vide.</li>
+          <li><code>.Returns(false)</code> — programme une réponse&nbsp;: «&nbsp;quand on appelle <code>ConfirmAsync</code>,
+            réponds <code>false</code>&nbsp;». <code>Arg.Any&lt;string&gt;()</code> signifie «&nbsp;quel que soit le
+            message&nbsp;».</li>
+          <li><code>.Received(1).Show("Note supprimée")</code> — vérifie <em>après coup</em> que la méthode a été appelée
+            une fois, avec ce texte. <code>.DidNotReceive()</code> vérifie qu'elle ne l'a jamais été.</li>
+          <li><code>Arg.Is&lt;Note&gt;(note =&gt; note.Text == "Bonjour")</code> — accepte n'importe quelle note dont le
+            texte vaut <code>"Bonjour"</code>&nbsp;: la fonction fléchée renvoie <code>true</code> ou <code>false</code>.</li>
+        </ul>
+      </div>
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Fake ou mock&nbsp;?</th><th>Fake écrit à la main</th><th>Mock NSubstitute</th></tr></thead>
+          <tbody>
+            <tr><td>Écriture</td><td>Une classe par interface</td><td>Une ligne : <code>Substitute.For&lt;T&gt;()</code></td></tr>
+            <tr><td>Point fort</td><td>Simuler un état (des notes en mémoire)</td><td>Vérifier une interaction (tel appel, tel argument)</td></tr>
+            <tr><td>Lisibilité</td><td>Tout est visible dans le code du fake</td><td>Le comportement se lit dans le test lui-même</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Les deux se combinent très bien&nbsp;: on garde souvent un fake pour les données (<code>FakeFileService</code>), et
+        des mocks pour vérifier qu'une notification ou une navigation a bien été demandée.
+      </p>
+      <div class="checkpoint">
+        <div class="tagline">À tester (Explorateur de tests, puis terminal)</div>
+        <ol>
+          <li>Les 16 tests passent au vert.</li>
+          <li>Lance aussi les tests en ligne de commande, à la racine de la solution&nbsp;: <code>dotnet test</code>. C'est
+            ainsi qu'un serveur d'intégration continue les exécuterait à chaque commit.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="bilan">
+    <div class="part-head"><div class="part-num">6</div><h2>Bilan des notions vues</h2></div>
+    <div class="prose">
+      <div class="recap-wrap">
+        <table class="recap">
+          <thead><tr><th>Notion</th><th>Étape</th><th>Rôle dans le TP</th></tr></thead>
+          <tbody>
+            <tr><td>Projet de tests xUnit</td><td class="step">1</td><td>Il ne référence que la bibliothèque de logique.</td></tr>
+            <tr><td>[Fact]</td><td class="step">1</td><td>Désigne une méthode de test.</td></tr>
+            <tr><td>Arrange / Act / Assert</td><td class="step">1</td><td>Préparer, agir, vérifier&nbsp;: la structure de chaque test.</td></tr>
+            <tr><td>Fake</td><td class="step">2</td><td>Une seconde réalisation d'une interface, pour les tests.</td></tr>
+            <tr><td>{ get; private set; }</td><td class="step">2</td><td>Lisible partout, modifiable seulement par sa classe.</td></tr>
+            <tr><td>Assert.*</td><td class="step">3</td><td><code>Equal</code>, <code>Single</code>, <code>Empty</code>, <code>PropertyChanged</code>…</td></tr>
+            <tr><td>Test asynchrone</td><td class="step">3</td><td><code>async Task</code> et <code>await ExecuteAsync(null)</code>.</td></tr>
+            <tr><td>[Theory] / [InlineData]</td><td class="step">4</td><td>Le même test avec plusieurs jeux de données.</td></tr>
+            <tr><td>Mock NSubstitute</td><td class="step">5</td><td><code>Returns</code>, <code>Received</code>, <code>DidNotReceive</code>, <code>Arg</code>.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="part" id="git">
+    <div class="part-head"><div class="part-num">7</div><h2>Fin de sprint&nbsp;: commit &amp; tag</h2></div>
+    <div class="prose">
+<div class="code-block">
+  <div class="code-file"><i class="cfg"></i>Terminal — à la racine de la solution</div>
+  <div class="code-wrap"><pre class="code">git add .
+git commit -m "Sprint 8 : tests unitaires avec des fakes, puis avec NSubstitute"
+git tag sprint-08</pre></div>
+</div>
+      <p>
+        Le dépôt de référence <code>NoteApp</code> contient ce même état au tag <code>sprint-08</code> de la branche
+        <code>main</code>. Le tutoriel est terminé&nbsp;: la même application, en version code-behind puis en version
+        MVVM, et la preuve, par les tests, que la seconde est testable.
+      </p>
+      <p class="sprintnav"><a href="../sprint-07/guide-sprint-07.html">← Sprint 7 — Injection de dépendances</a><span></span></p>
+    </div>
+  </section>
+
+  <footer>
+    <p>NoteApp · Version MVVM — Guide TP sprint 8, les tests unitaires</p>
+  </footer>
+
+</div>

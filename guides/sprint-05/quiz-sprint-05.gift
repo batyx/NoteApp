@@ -1,0 +1,64 @@
+// NoteApp/Sprint 5 - Éditer une note : quiz de validation (10 questions, QCM à réponse unique, sans pénalité)
+// Import Moodle : Banque de questions > Importer > format GIFT, encodage UTF-8
+
+$CATEGORY: NoteApp/Sprint 5 - Éditer une note
+
+::S5-01 [facile]:: [plain]Que génère l'attribut [ObservableProperty] placé devant le champ private string _text ? {
+~Un champ public nommé _text, accessible depuis la vue. #Le champ reste privé \: le générateur crée une propriété publique à côté.
+=Une propriété publique Text, qui prévient la vue à chaque modification. #Exact \: son set appelle OnPropertyChanged("Text") quand la valeur change.
+~Une commande TextCommand, exécutée à chaque frappe. #Les commandes sont générées par [RelayCommand], à partir d'une méthode.
+}
+
+::S5-02 [facile]:: [plain]Quel attribut transforme la méthode Save() en une commande SaveCommand ? {
+=[RelayCommand] #Exact \: il génère une propriété SaveCommand qui appelle Save().
+~[ObservableProperty] #Cet attribut s'applique à un champ et génère une propriété.
+~[Command] #Cet attribut n'existe pas dans le MVVM Toolkit.
+}
+
+::S5-03 [facile]:: [plain]Pourquoi NoteViewModel doit-il être déclaré partial ? {
+~Parce qu'il hérite d'ObservableObject. #L'héritage n'impose pas partial.
+~Pour que le XAML puisse accéder à ses propriétés. #Le XAML accède aux propriétés publiques, partial ou non.
+=Parce que le Toolkit ajoute à la classe le code qu'il génère. #Exact \: comme pour le XAML, la classe est écrite en plusieurs morceaux.
+}
+
+::S5-04 [moyen]:: [plain]En MVVM, comment le bouton Enregistrer déclenche-t-il la méthode Save du ViewModel ? {
+~Avec Click\="Save", qui appelle directement la méthode du ViewModel. #Click appelle une méthode du code-behind, pas du ViewModel.
+=Avec Command\="\{Binding SaveCommand\}", relié à la commande générée. #Exact \: le bouton exécute la commande, qui appelle Save().
+~Avec Click\="\{Binding Save\}", un Binding vers la méthode. #On ne relie pas un événement à une méthode par Binding \: on passe par une commande.
+}
+
+::S5-05 [moyen]:: [plain]Quand CurrentViewModel contient un NoteViewModel, comment WPF sait-il qu'il faut afficher une NoteView ? {
+~Parce que les deux classes portent presque le même nom. #WPF ne devine rien à partir des noms.
+~Parce que MainViewModel crée lui-même la NoteView. #Un ViewModel ne crée jamais de vue \: il ne connaît pas WPF.
+=Grâce au DataTemplate de ce type, dans App.xaml. #Exact \: DataType\="\{x\:Type viewModels\:NoteViewModel\}". WPF choisit le DataTemplate qui correspond au type de l'objet à afficher.
+}
+
+::S5-06 [moyen]:: [plain]Pourquoi l'attribut StartupUri a-t-il été retiré de App.xaml ? {
+=Parce que la fenêtre attend maintenant un ViewModel. #Exact \: WPF ne saurait pas quoi passer au constructeur de MainWindow ; c'est App.xaml.cs qui la crée.
+~Parce que MaterialDesign interdit StartupUri dans une application MVVM. #MaterialDesign n'impose rien sur ce point.
+~Parce qu'il ralentissait le démarrage de l'application. #La raison est le constructeur de la fenêtre, pas la vitesse.
+}
+
+::S5-07 [moyen]:: [plain]Que permet UpdateSourceTrigger\=PropertyChanged dans Text\="\{Binding Text, UpdateSourceTrigger\=PropertyChanged\}" ? {
+~D'empêcher l'utilisateur de modifier le texte. #Le champ reste modifiable ; le réglage porte sur le moment de la mise à jour.
+=De mettre à jour Text dans le ViewModel à chaque caractère tapé. #Exact \: sans lui, la mise à jour attendrait que le champ perde le focus.
+~De n'envoyer le texte au ViewModel qu'au clic sur Enregistrer. #C'est Save() qui recopie Text dans la note ; le Binding, lui, met Text à jour à chaque frappe.
+}
+
+::S5-08 [difficile]:: [plain]Dans le DataTemplate d'une carte, pourquoi le Binding de la commande utilise-t-il RelativeSource AncestorType\=ItemsControl ? {
+~Parce que l'ItemsControl contient la note à ouvrir, et que la carte ne la connaît pas. #La note est déjà le DataContext de la carte \: c'est la commande qu'il faut aller chercher.
+=Parce que la commande est dans le ViewModel de la liste, pas dans la note. #Exact \: le DataContext de la carte est la note ; on remonte jusqu'à l'ItemsControl pour prendre son DataContext.
+~Parce que MaterialDesign exige ce Binding pour les cartes. #C'est une règle de WPF sur les DataContext, pas de MaterialDesign.
+}
+
+::S5-09 [moyen]:: [plain]Que signifie class MainViewModel \: ObservableObject, INavigationService ? {
+=Elle hérite d'ObservableObject et réalise INavigationService. #Exact \: en PHP, extends ObservableObject implements NavigationServiceInterface.
+~MainViewModel hérite de deux classes à la fois. #C\# n'autorise qu'une classe parente ; INavigationService est une interface.
+~MainViewModel réalise deux interfaces à la fois, et n'hérite d'aucune classe. #ObservableObject est une classe \: MainViewModel en hérite.
+}
+
+::S5-10 [difficile]:: [plain]À la fin du sprint 5, pourquoi une note neuve n'apparaît-elle pas dans la liste après l'enregistrement ? {
+~Parce que FileService n'écrit pas encore le fichier sur le disque. #Le fichier est bien écrit \: la note apparaît au lancement suivant.
+~Parce que le Binding ItemsSource de la liste est mal écrit. #La liste affiche bien les notes chargées au démarrage.
+=Parce que la liste n'est chargée qu'au démarrage. #Exact \: et NoteViewModel ne la connaît pas. Le sprint 6 résout ce problème avec des messages.
+}
